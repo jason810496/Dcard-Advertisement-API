@@ -7,8 +7,8 @@ The assignment can be broadly defined as:  <br>
 
 - [System Architecture (系統架構圖)](#system-architecture)
 - [System Design (系統設計＆思路)](#system-design)
-    - [Data Hotspot ?](#data-hotspot-)
-    - [Estimated Data Size ?](#estimated-data-size-)
+    - [Data Hotspot](#data-hotspot)
+    - [Estimated Data Size](#estimated-data-size)
     - [How to preheat & deactive ?](#how-to-preheat--deactive-)
 - [Setup : Development](#setup--development)
 - [Setup : Production ( kubernetes )](#setup--production--kubernetes)
@@ -42,7 +42,7 @@ The assignment can be broadly defined as:  <br>
 
 Example:
 
-```json
+```bash
 curl -X POST -H "Content-Type: application/json" \
 "http://<host>/api/v1/ad" \
 --data '{
@@ -62,12 +62,13 @@ curl -X POST -H "Content-Type: application/json" \
 
 ### API 2: Query Advertisement
 
-```json
+```bash
 curl -X GET -H "Content-Type: application/json" \
 "http://<host>/api/v1/ad?offset=10&limit=3&age=24&gender=F&country=TW&platform=ios"
+```
 
-# response
-
+```json
+// response
 {
     "items": [
         {
@@ -130,7 +131,7 @@ curl -X GET -H "Content-Type: application/json" \
 把 **最常出現的查詢條件** 都 **preheat** 到 Redis 中 <br>
 同樣也透過 Corn Job 來將 **過期的資料** 刪除 <br>
 
-### Data Hotspot ?
+### Data Hotspot
 
 **Age** <br>
 根據：
@@ -149,7 +150,7 @@ curl -X GET -H "Content-Type: application/json" \
 先假設目前 Country 的熱點有 **5** 個 <br>
 ( 這邊沒有特別去查 Dcard 的流量分析，所以先假設 5 個 ) <br>
 
-### Estimated Data Size ?
+### Estimated Data Size
 
 根據 [Data Hotspot](#data-hotspot) 的假設 <br>
 - **Age** : 35 - 18 + 5 = 22
@@ -173,8 +174,8 @@ ZSet 的結構如下 : <br>
 
 代表當下 SQL Create 的廣告 **不一定** 會立即 **活躍** <br>
 > 最差的情況是當下 Create 的廣告都是未來的時間 <br>
-> 如果在 SQL Create 的時候就直接 Preheat 到 Redis 中 <br>
-> 反而會造成 Redis 效率不佳 <br>
+> 如果在 SQL Create 的當下就直接 Preheat 到 Redis 中 <br>
+> 反而會造成 Memory 的浪費 <br>
 
 所以可以透過 **Corn Job** 來定期的 Preheat <br>
 如：<br>
@@ -197,12 +198,22 @@ ZSet 的結構如下 : <br>
 
 https://github.com/chenyahui/gin-cache
 
+除了在 Redis 做 Cache ， 也可以在 Local Memory 做 Cache <br>
+但是會設定更短的 TTL <br>
+
 
 ## Features : Distributed Locks with Redis 
 
 Hotspot Invalid ( 快取擊穿 ) <br>
 
 ## Features : High availability with Redis Sentinel
+
+現在我們的 API 對 Redis 有很高的依賴 <br>
+如果 Redis instance 掛掉，整個 DB 也會被流量打掛 <br>
+所以要保證 Redis 的高可用性 <br>
+
+這邊可以透過 Redis Sentinel ( 哨兵模式 ) 來達成 <br>
+並且可以將 Query 操作分散到多個 Redis instance 上 <br>
 
 ## DevOps : CI/CD
 
