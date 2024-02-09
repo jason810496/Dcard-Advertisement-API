@@ -192,6 +192,12 @@ ZSet 的結構如下 : <br>
 
 ## Setup : Development
 
+### Prerequisites
+
+- `air` : Hot reload for Go
+- `swag` : auto generate API doc
+- `make` : Build tool
+
 ## Setup : Production ( kubernetes )
 
 ## Features : Local Cache in Memory
