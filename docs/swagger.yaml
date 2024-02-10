@@ -1,20 +1,168 @@
-basePath: /api/v1
+definitions:
+  github_com_jason810496_Dcard-Advertisement-API_pkg_schemas.CreateAdRequest:
+    properties:
+      conditions:
+        items:
+          properties:
+            ageEnd:
+              example: 30
+              type: integer
+            ageStart:
+              example: 18
+              type: integer
+            country:
+              example:
+              - TW
+              - JP
+              - KR
+              - US
+              items:
+                type: string
+              type: array
+            platform:
+              example:
+              - ios
+              - web
+              items:
+                type: string
+              type: array
+          required:
+          - ageEnd
+          - ageStart
+          - country
+          - platform
+          type: object
+        type: array
+      endAt:
+        example: "2024-02-01 10:00:00"
+        type: string
+      startAt:
+        example: "2024-01-01 10:00:00"
+        type: string
+      title:
+        example: AD 123
+        type: string
+    required:
+    - conditions
+    - endAt
+    - startAt
+    - title
+    type: object
+  github_com_jason810496_Dcard-Advertisement-API_pkg_schemas.CreateAdResponse:
+    properties:
+      message:
+        example: create success
+        type: string
+    type: object
+  github_com_jason810496_Dcard-Advertisement-API_pkg_schemas.PublicAdItem:
+    properties:
+      endAt:
+        example: "2021-12-31 23:59:59"
+        type: string
+      title:
+        example: This is an AD title
+        type: string
+    type: object
+  github_com_jason810496_Dcard-Advertisement-API_pkg_schemas.PublicAdResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/github_com_jason810496_Dcard-Advertisement-API_pkg_schemas.PublicAdItem'
+        type: array
+    type: object
+  utils.HTTPError:
+    properties:
+      code:
+        example: 400
+        type: integer
+      message:
+        example: status bad request
+        type: string
+    type: object
 info:
   contact: {}
 paths:
-  /example/helloworld:
+  /api/v1/ad:
     get:
-      consumes:
-      - application/json
-      description: do ping
+      description: query ad by query parameters age, country
+      parameters:
+      - description: age
+        in: query
+        maximum: 100
+        minimum: 1
+        name: age
+        type: integer
+      - description: country
+        enum:
+        - TW
+        - HK
+        - JP
+        - US
+        - KR
+        in: query
+        name: country
+        type: string
+      - description: platform
+        enum:
+        - ios
+        - android
+        - web
+        in: query
+        name: platform
+        type: string
+      - description: gender
+        enum:
+        - F
+        - M
+        in: query
+        name: gender
+        type: string
+      - description: limit
+        in: query
+        name: limit
+        type: integer
+      - description: offset
+        in: query
+        name: offset
+        type: integer
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            type: string
-      summary: ping example
+            $ref: '#/definitions/github_com_jason810496_Dcard-Advertisement-API_pkg_schemas.PublicAdResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      summary: public API
       tags:
-      - example
+      - ad
+    post:
+      consumes:
+      - application/json
+      description: create advertisement with `startAt`, `endAt` and `condition`
+      parameters:
+      - description: advertisement request schema
+        in: body
+        name: advertisement
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_jason810496_Dcard-Advertisement-API_pkg_schemas.CreateAdRequest'
+      produces:
+      - application/json
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_jason810496_Dcard-Advertisement-API_pkg_schemas.CreateAdResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPError'
+      summary: admin API
+      tags:
+      - ad
 swagger: "2.0"
