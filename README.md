@@ -149,6 +149,7 @@ curl -X GET -H "Content-Type: application/json" \
 
 先假設目前 Country 的熱點有 **5** 個 <br>
 ( 這邊沒有特別去查 Dcard 的流量分析，所以先假設 5 個 ) <br>
+> 以 **`TW, HK, JP, US, KR`** 作為 Country Enum <br>
 
 ### Estimated Data Size
 
