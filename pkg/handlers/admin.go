@@ -1,10 +1,13 @@
 package handlers
 
 import (
-	"github.com/gin-gonic/gin"
-	schemas "github.com/jason810496/Dcard-Advertisement-API/pkg/schemas"
-)
+	"fmt"
+	"net/http"
 
+	"github.com/gin-gonic/gin"
+	"github.com/jason810496/Dcard-Advertisement-API/pkg/schemas"
+	"github.com/jason810496/Dcard-Advertisement-API/pkg/utils"
+)
 
 // CreateAdAPI godoc
 // @Summary admin API
@@ -17,16 +20,17 @@ import (
 // @Success 200 {object} schemas.CreateAdResponse
 // @Failure 400 {object} utils.HTTPError
 // @Router /api/v1/ad [post]
-func CreateAd(c *gin.Context) {
-
+func CreateAd(ctx *gin.Context) {
 	var json schemas.CreateAdRequest
-	if err := c.ShouldBindJSON(&json); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+
+	if err := ctx.ShouldBindJSON(&json); err != nil {
+		utils.NewError(ctx, http.StatusBadRequest, err)
 		return
 	}
 
+	fmt.Printf("%#v\n", json)
 
-	c.JSON(200, gin.H{
+	ctx.JSON(200, gin.H{
 		"message": "create ad",
 	})
 }

@@ -1,8 +1,11 @@
 package handlers
 
 import (
+	"fmt"
+
 	"github.com/gin-gonic/gin"
-	schemas "github.com/jason810496/Dcard-Advertisement-API/pkg/schemas"
+	"github.com/jason810496/Dcard-Advertisement-API/pkg/schemas"
+	"github.com/jason810496/Dcard-Advertisement-API/pkg/utils"
 )
 
 // PublicAdAPI godoc
@@ -20,15 +23,15 @@ import (
 // @Failure 400 {object} utils.HTTPError
 // @Router /api/v1/ad [get]
 func PublicAd(c *gin.Context) {
+	json := schemas.NewPublicAdRequest()
 
-	items := schemas.PublicAdResponse{
-		Items: []schemas.PublicAdItem{
-			{
-				Title: "title",
-				EndAt: "endAt",
-			},
-		},
+	if err := c.ShouldBindQuery(&json); err != nil {
+		utils.NewError(c, 400, err)
+		return
 	}
 
-	c.JSON(200, items)
+	fmt.Printf("%#v\n", json)
+
+	// print by logger
+
 }
