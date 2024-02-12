@@ -91,7 +91,7 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/utils.HTTPError"
+                            "$ref": "#/definitions/github_com_jason810496_Dcard-Advertisement-API_pkg_utils.HTTPError"
                         }
                     }
                 }
@@ -130,7 +130,7 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/utils.HTTPError"
+                            "$ref": "#/definitions/github_com_jason810496_Dcard-Advertisement-API_pkg_utils.HTTPError"
                         }
                     }
                 }
@@ -138,6 +138,49 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "github_com_jason810496_Dcard-Advertisement-API_pkg_schemas.CreateAdConditions": {
+            "type": "object",
+            "required": [
+                "ageEnd",
+                "ageStart",
+                "country",
+                "platform"
+            ],
+            "properties": {
+                "ageEnd": {
+                    "type": "integer",
+                    "maximum": 100,
+                    "minimum": 1,
+                    "example": 30
+                },
+                "ageStart": {
+                    "type": "integer",
+                    "maximum": 100,
+                    "minimum": 1,
+                    "example": 18
+                },
+                "country": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "TW",
+                        "JP"
+                    ]
+                },
+                "platform": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "ios",
+                        "android"
+                    ]
+                }
+            }
+        },
         "github_com_jason810496_Dcard-Advertisement-API_pkg_schemas.CreateAdRequest": {
             "type": "object",
             "required": [
@@ -148,56 +191,15 @@ const docTemplate = `{
             ],
             "properties": {
                 "conditions": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "required": [
-                            "ageEnd",
-                            "ageStart",
-                            "country",
-                            "platform"
-                        ],
-                        "properties": {
-                            "ageEnd": {
-                                "type": "integer",
-                                "example": 30
-                            },
-                            "ageStart": {
-                                "type": "integer",
-                                "example": 18
-                            },
-                            "country": {
-                                "type": "array",
-                                "items": {
-                                    "type": "string"
-                                },
-                                "example": [
-                                    "TW",
-                                    "JP",
-                                    "KR",
-                                    "US"
-                                ]
-                            },
-                            "platform": {
-                                "type": "array",
-                                "items": {
-                                    "type": "string"
-                                },
-                                "example": [
-                                    "ios",
-                                    "web"
-                                ]
-                            }
-                        }
-                    }
+                    "$ref": "#/definitions/github_com_jason810496_Dcard-Advertisement-API_pkg_schemas.CreateAdConditions"
                 },
                 "endAt": {
                     "type": "string",
-                    "example": "2024-02-01 10:00:00"
+                    "example": "2023-12-31T16:00:00.000Z"
                 },
                 "startAt": {
                     "type": "string",
-                    "example": "2024-01-01 10:00:00"
+                    "example": "2023-12-10T03:00:00.000Z"
                 },
                 "title": {
                     "type": "string",
@@ -238,16 +240,30 @@ const docTemplate = `{
                 }
             }
         },
-        "utils.HTTPError": {
+        "github_com_jason810496_Dcard-Advertisement-API_pkg_utils.ErrorMsg": {
+            "type": "object",
+            "properties": {
+                "field": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "bad request"
+                }
+            }
+        },
+        "github_com_jason810496_Dcard-Advertisement-API_pkg_utils.HTTPError": {
             "type": "object",
             "properties": {
                 "code": {
                     "type": "integer",
                     "example": 400
                 },
-                "message": {
-                    "type": "string",
-                    "example": "status bad request"
+                "errors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_jason810496_Dcard-Advertisement-API_pkg_utils.ErrorMsg"
+                    }
                 }
             }
         }

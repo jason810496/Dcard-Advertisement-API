@@ -25,6 +25,10 @@ air:
 		$(GO) install github.com/cosmtrek/air@latest; \
 	fi
 
+.PHONY: fmt
+fmt:
+	$(GO) fmt ./...
+
 # run air
 .PHONY: dev
 dev: air
