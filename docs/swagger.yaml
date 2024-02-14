@@ -90,8 +90,12 @@ definitions:
           $ref: '#/definitions/github_com_jason810496_Dcard-Advertisement-API_pkg_utils.ErrorMsg'
         type: array
     type: object
+host: 0.0.0.0:8080
 info:
   contact: {}
+  description: This is a swagger for Dcard Backend Intern 2024
+  title: Dcard Advertisement API
+  version: "1.0"
 paths:
   /api/v1/ad:
     get:
@@ -176,4 +180,7 @@ paths:
       summary: admin API
       tags:
       - ad
+schemes:
+- http,
+- https
 swagger: "2.0"

@@ -22,3 +22,5 @@ go.work
 
 .vscode/
 tmp
+.env/dev.yaml
+.env/prod.yaml
