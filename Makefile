@@ -28,7 +28,8 @@ air:
 .PHONY: fmt
 fmt:
 	$(GO) fmt ./...
-
+	swag fmt
+	
 # run air
 .PHONY: dev
 dev: air

@@ -10,16 +10,17 @@ import (
 )
 
 // CreateAdAPI godoc
-// @Summary admin API
-// @tags ad
-// @Accept json
-// @Produce json
-// @Description create advertisement with `startAt`, `endAt` and `condition`
-// @Param advertisement body schemas.CreateAdRequest true "advertisement request schema"
-// @Produce json
-// @Success 200 {object} schemas.CreateAdResponse
-// @Failure 400 {object} utils.HTTPError
-// @Router /api/v1/ad [post]
+//
+//	@Summary		admin API
+//	@tags			ad
+//	@Accept			json
+//	@Produce		json
+//	@Description	create advertisement with `startAt`, `endAt` and `condition`
+//	@Param			advertisement	body	schemas.CreateAdRequest	true	"advertisement request schema"
+//	@Produce		json
+//	@Success		200	{object}	schemas.CreateAdResponse
+//	@Failure		400	{object}	utils.HTTPError
+//	@Router			/api/v1/ad [post]
 func CreateAd(ctx *gin.Context) {
 	var json schemas.CreateAdRequest
 

@@ -1,15 +1,13 @@
 package config
 
 import (
-	"github.com/spf13/viper"
 	"fmt"
+	"github.com/spf13/viper"
 	"os"
 )
 
-
 // Settings is the configuration instance
 var Settings *ServerConfig
-
 
 func init() {
 	viper.SetConfigName(getConfigName())
@@ -26,7 +24,6 @@ func init() {
 
 	fmt.Printf("%#v\n", *Settings)
 }
-
 
 // GetConfig returns the configuration instance
 // func GetConfig() *ServerConfig {
