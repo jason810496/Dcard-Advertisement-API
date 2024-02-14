@@ -1,16 +1,8 @@
 {
-    "schemes": [
-        "http,",
-        "https"
-    ],
     "swagger": "2.0",
     "info": {
-        "description": "This is a swagger for Dcard Backend Intern 2024",
-        "title": "Dcard Advertisement API",
-        "contact": {},
-        "version": "1.0"
+        "contact": {}
     },
-    "host": "0.0.0.0:8080",
     "paths": {
         "/api/v1/ad": {
             "get": {
