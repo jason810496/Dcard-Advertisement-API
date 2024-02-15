@@ -116,6 +116,56 @@ curl -X GET -H "Content-Type: application/json" \
 
 ## System Architecture
 
+
+```mermaid
+flowchart TD
+    Ingress[Ingress] 
+
+    subgraph APCluster[Stateless AP]
+    AP1[AP 1]
+    AP2[AP 2]
+    AP3[scale by k8s ...]
+    end
+    %% Ingress --> AP1 & AP2 & AP3
+    
+    subgraph HAProxyCluster[HAProxy Deployment]
+    HAProxy1[Proxy instance]
+    HAProxy2[Standby]
+    end
+
+    subgraph RedisCluster["`Redis **sentinel**`"]
+    RedisReplica1[Replica 1]
+    RedisMaster[Primary]
+    RedisReplica2[Replica 2]
+    end
+
+    Ingress --> APCluster -- Public API
+    ( Query active AD )--> HAProxyCluster 
+    HAProxyCluster -- load balance Read request --> RedisCluster
+    %% HAProxyCluster --> RedisReplica1 & RedisReplica2
+
+    PG[fa:fa-database Postgres]
+
+    RedisMaster & RedisReplica1 & RedisReplica2 ---> PG
+    APCluster -- Admin API
+    ( Create AD ) --> PG
+
+
+    %% subgraph CornWorkers[Cornjob Workers]
+    %% ActiveWorker[Cornjob: Pre-heat AD]
+    %% DeactiveWorkder[Cornjob: Deactive AD]
+    Corn[CornJob]
+    %% end
+  
+    %% PG <--> ActiveWorker --> RedisMaster
+    %% PG <--> DeactiveWorkder --> RedisMaster
+
+    RedisMaster <-- Pre-heat or aeactive AD
+    ( use Lua script for atomic operation ) --> Corn <-- Query oncomming AD--> PG
+
+    
+```
+
 ## System Design
 
 要達到 : <br>
