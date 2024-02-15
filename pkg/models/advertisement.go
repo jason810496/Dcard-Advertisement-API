@@ -1,11 +1,14 @@
 package models
 
 import (
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 	"time"
 )
 
 // Advertisement model
+// `datatypes.JSON` is a custom type for gorm to store JSON data
+// https://github.com/go-gorm/datatypes
 type Advertisement struct {
 	gorm.Model
 	ID      uint `gorm:"primaryKey"`
@@ -15,6 +18,6 @@ type Advertisement struct {
 	// conditions
 	AgeStart uint8
 	AgeEnd   uint8
-	Country  string `gorm:"type:varchar(2)"`  // ISO 3166-1 alpha-2
-	Platform string `gorm:"type:varchar(10)"` // android, ios, web
+	Country  datatypes.JSON // ["TW", "JP"]
+	Platform datatypes.JSON // ["ios", "android"]
 }

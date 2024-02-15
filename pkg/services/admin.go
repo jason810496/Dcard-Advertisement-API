@@ -4,6 +4,7 @@ import (
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/database"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/models"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/schemas"
+	"github.com/jason810496/Dcard-Advertisement-API/pkg/utils"
 	"gorm.io/gorm"
 )
 
@@ -22,8 +23,8 @@ func (srv *AdminService) CreateAdvertisement(adv *schemas.CreateAdRequest) error
 		EndAt:    adv.EndAt,
 		AgeStart: uint8(adv.Conditions.AgeStart), // convert int to uint8 (age is between 0-127
 		AgeEnd:   uint8(adv.Conditions.AgeEnd),
-		Country:  adv.Conditions.Country[0],  // only store the first country
-		Platform: adv.Conditions.Platform[0], // only store the first platform
+		Country:  utils.ToJsonArray(adv.Conditions.Country),
+		Platform: utils.ToJsonArray(adv.Conditions.Platform),
 	}
 
 	if err := srv.db.Create(&advertisement).Error; err != nil {
