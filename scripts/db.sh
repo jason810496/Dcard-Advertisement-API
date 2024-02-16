@@ -149,7 +149,7 @@ function drop() {
             docker exec -it $container_name mysql -u root -p$database_password -e "DROP DATABASE $database_name"
             ;;
         postgres)
-            docker exec -it $container_name psql -U $database_user -c "DROP DATABASE $database_name"
+            docker exec -it $container_name psql -U $database_user -d postgres -c "DROP DATABASE $database_name"
             ;;
         redis)
             docker exec -it $container_name redis-cli -a $database_password "FLUSHALL"
