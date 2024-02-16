@@ -140,12 +140,6 @@ const docTemplate = `{
     "definitions": {
         "github_com_jason810496_Dcard-Advertisement-API_pkg_schemas.CreateAdConditions": {
             "type": "object",
-            "required": [
-                "ageEnd",
-                "ageStart",
-                "country",
-                "platform"
-            ],
             "properties": {
                 "ageEnd": {
                     "type": "integer",
@@ -167,6 +161,16 @@ const docTemplate = `{
                     "example": [
                         "TW",
                         "JP"
+                    ]
+                },
+                "gender": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "F",
+                        "M"
                     ]
                 },
                 "platform": {
@@ -195,7 +199,7 @@ const docTemplate = `{
                 },
                 "endAt": {
                     "type": "string",
-                    "example": "2023-12-31T16:00:00.000Z"
+                    "example": "2024-12-31T16:00:00.000Z"
                 },
                 "startAt": {
                     "type": "string",

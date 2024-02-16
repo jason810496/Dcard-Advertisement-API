@@ -24,7 +24,7 @@ import (
 //	@Failure		400	{object}	utils.HTTPError
 //	@Router			/api/v1/ad [post]
 func CreateAd(ctx *gin.Context) {
-	var json schemas.CreateAdRequest
+	json := schemas.NewCreateAdRequest()
 
 	if err := ctx.ShouldBindJSON(&json); err != nil {
 		utils.NewError(ctx, http.StatusBadRequest, err)

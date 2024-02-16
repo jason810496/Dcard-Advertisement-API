@@ -18,6 +18,13 @@ definitions:
         items:
           type: string
         type: array
+      gender:
+        example:
+        - F
+        - M
+        items:
+          type: string
+        type: array
       platform:
         example:
         - ios
@@ -25,18 +32,13 @@ definitions:
         items:
           type: string
         type: array
-    required:
-    - ageEnd
-    - ageStart
-    - country
-    - platform
     type: object
   github_com_jason810496_Dcard-Advertisement-API_pkg_schemas.CreateAdRequest:
     properties:
       conditions:
         $ref: '#/definitions/github_com_jason810496_Dcard-Advertisement-API_pkg_schemas.CreateAdConditions'
       endAt:
-        example: "2023-12-31T16:00:00.000Z"
+        example: "2024-12-31T16:00:00.000Z"
         type: string
       startAt:
         example: "2023-12-10T03:00:00.000Z"
