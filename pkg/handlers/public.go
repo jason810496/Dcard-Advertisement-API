@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/schemas"
+	"github.com/jason810496/Dcard-Advertisement-API/pkg/services"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/utils"
 )
 
@@ -23,16 +24,23 @@ import (
 //	@Success		200			{object}	schemas.PublicAdResponse
 //	@Failure		400			{object}	utils.HTTPError
 //	@Router			/api/v1/ad [get]
-func PublicAd(c *gin.Context) {
+func PublicAd(ctx *gin.Context) {
 	json := schemas.NewPublicAdRequest()
 
-	if err := c.ShouldBindQuery(&json); err != nil {
-		utils.NewError(c, 400, err)
+	if err := ctx.ShouldBindQuery(&json); err != nil {
+		utils.NewError(ctx, 400, err)
 		return
 	}
 
 	fmt.Printf("%#v\n", json)
 
-	// print by logger
+	srv := services.NewPublicService()
 
+	res, err := srv.GetAdvertisements(json)
+	if err != nil {
+		utils.NewError(ctx, 400, err)
+		return
+	}
+
+	ctx.JSON(200, res)
 }
