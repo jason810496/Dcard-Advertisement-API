@@ -28,8 +28,13 @@ func CheckConnection() {
 	}
 }
 
+func CloseConnection() {
+	log.Println("Closing database connection")
+	SqlDB.Close()
+}
+
 // Connect to database
-func init() {
+func Init() {
 	// Open connection to database
 	db, err := gorm.Open(getDialector(), &gorm.Config{})
 	if err != nil {
@@ -53,6 +58,11 @@ func init() {
 	// Set database connection instance
 	DB = db
 	SqlDB = sqlDB
+
+	// Enable Logger, show detailed log
+	if config.Settings.App.Env == "dev" {
+		DB = db.Debug()
+	}
 }
 
 // get database dialector
@@ -69,7 +79,6 @@ func getDialector() gorm.Dialector {
 		))
 	case "postgres":
 		return postgres.Open(fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=disable TimeZone=Asia/Taipei",
-
 			config.Settings.Database.Host,
 			config.Settings.Database.Port,
 			config.Settings.Database.User,

@@ -2,7 +2,7 @@ package services
 
 import (
 	"fmt"
-	"log"
+	// "log"
 	"time"
 
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/database"
@@ -26,7 +26,7 @@ func (srv *PublicService) GetAdvertisements(req schemas.PublicAdRequest) ([]mode
 	now := time.Now()
 	fmt.Println(now)
 
-	tx := srv.db.Debug()
+	tx := srv.db
 	tx = tx.Select("title", "end_at")
 	tx = tx.Where("start_at <= ? AND end_at >= ?", now, now)
 	// has Gender condition
@@ -55,8 +55,6 @@ func (srv *PublicService) GetAdvertisements(req schemas.PublicAdRequest) ([]mode
 	if err := tx.Find(&ads).Error; err != nil {
 		return nil, err
 	}
-
-	log.Printf("%#v\n", ads)
 
 	return ads, nil
 }
