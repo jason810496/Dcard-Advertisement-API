@@ -3,10 +3,7 @@ package main
 import (
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/config"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/database"
-	// "github.com/jason810496/Dcard-Advertisement-API/pkg/database"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/handlers"
-
-	// "net/http"
 
 	"github.com/jason810496/Dcard-Advertisement-API/docs"
 	swaggerFiles "github.com/swaggo/files"
@@ -14,6 +11,8 @@ import (
 )
 
 func main() {
+	config.Init()
+	database.Init()
 
 	router := handlers.SetupRouter()
 	docs.SwaggerInfo.Title = "Dcard Advertisement API"

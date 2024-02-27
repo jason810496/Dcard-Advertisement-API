@@ -1,17 +1,23 @@
 package config
 
 import (
+	"flag"
 	"fmt"
+
+	"github.com/jason810496/Dcard-Advertisement-API/pkg/utils"
 	"github.com/spf13/viper"
-	"os"
 )
 
 // Settings is the configuration instance
+var APP_MODE string
 var Settings *ServerConfig
 
-func init() {
+func Init() {
+	flagSettings()
+
 	viper.SetConfigName(getConfigName())
 	viper.AddConfigPath(".env")
+	viper.AddConfigPath("../.env") // for test
 	viper.SetConfigType("yaml")
 	if err := viper.ReadInConfig(); err != nil {
 		panic(fmt.Errorf("fatal error load config file: %s \n", err))
@@ -22,30 +28,31 @@ func init() {
 		panic(fmt.Errorf("fatal error parse config file: %s \n", err))
 	}
 
-	fmt.Printf("%#v\n", *Settings)
+	utils.PrintJson(Settings)
 }
 
-// GetConfig returns the configuration instance
-// func GetConfig() *ServerConfig {
-// 	return Settings
-// }
+func flagSettings() {
+	flag.StringVar(&APP_MODE, "config", "dev", "config file")
+	flag.Usage = func() {
+		fmt.Println("Usage: ./api -config [mode]")
+		fmt.Println("mode: dev, test, prod (default: dev)")
+	}
+	if !flag.Parsed() {
+		flag.Parse()
+	}
+}
 
 // get config file path by argument
 func getConfigName() string {
-	if len(os.Args) < 2 {
-		return "dev.yaml"
-	}
 
-	app_mode := os.Args[1]
-
-	switch app_mode {
+	switch APP_MODE {
 	case "dev":
-		return "dev.yaml"
+		return "dev"
 	case "test":
-		return "test.yaml"
+		return "test"
 	case "prod":
-		return "prod.yaml"
+		return "prod"
 	default:
-		panic("Invalid app mode")
+		panic("Invalid app mode  `" + APP_MODE + "`")
 	}
 }

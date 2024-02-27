@@ -2,10 +2,18 @@ package handlers
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/jason810496/Dcard-Advertisement-API/pkg/config"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/middleware"
 )
 
 func SetupRouter() *gin.Engine {
+	configModeToGinMode := map[string]string{
+		"prod": gin.ReleaseMode,
+		"dev":  gin.DebugMode,
+		"test": gin.TestMode,
+	}
+	gin.SetMode(configModeToGinMode[config.APP_MODE])
+
 	router := gin.Default()
 	router.Use(middleware.CORSMiddleware())
 

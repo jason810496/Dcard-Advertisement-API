@@ -35,5 +35,6 @@ fmt:
 dev: air
 	air --build.cmd "make" \
 	--build.bin bin/api \
+	--build.args_bin "-config dev"
 	--build.pre_cmd "make gen" \
 	--build.exclude_dir "docs" 
