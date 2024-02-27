@@ -6,6 +6,20 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
+// Error handling for `validate.PublicAdRequestAge`
+// ( go-playground/validator/v10 can't validate omitempty,gte=1 when the value is 0 )
+func NewAgeError(ctx *gin.Context, status int) {
+	ctx.AbortWithStatusJSON(status, HTTPError{
+		Code: status,
+		Errors: []ErrorMsg{
+			{
+				Field:   "Age",
+				Message: "Should be greater than 1",
+			},
+		},
+	})
+}
+
 // NewError example
 func NewError(ctx *gin.Context, status int, err error) {
 	var validate_errors validator.ValidationErrors
