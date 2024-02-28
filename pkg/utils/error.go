@@ -44,10 +44,12 @@ func getErrorMsg(fe validator.FieldError) string {
 	switch fe.Tag() {
 	case "required":
 		return "This field is required"
-	case "gte", "gtefield":
+	case "gte", "gtefield", "min":
 		return "Should be greater than " + fe.Param()
 	case "oneof":
 		return "Should be one of " + fe.Param()
+	case "max":
+		return "Should be less than " + fe.Param()
 	}
 	return "Unknown error"
 }
