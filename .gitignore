@@ -24,4 +24,5 @@ go.work
 tmp
 .env/dev.yaml
 .env/prod.yaml
+.env/test.yaml
 advertisement.db

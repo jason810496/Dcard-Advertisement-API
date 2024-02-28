@@ -24,6 +24,8 @@ type Advertisement struct {
 	Gender   datatypes.JSON `json:"gender,omitempty"`   // ["F", "M"]
 	Country  datatypes.JSON `json:"country,omitempty"`  // ["TW", "HK", "JP", "US", "KR"]
 	Platform datatypes.JSON `json:"platform,omitempty"` // ["ios", "android", "web"]
+	// have loaded to redis
+	Active bool `json:"active,omitempty"`
 }
 
 // func (ad *Advertisement) AfterFind(tx *gorm.DB) (err error) {
