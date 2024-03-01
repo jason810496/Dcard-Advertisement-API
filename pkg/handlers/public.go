@@ -44,7 +44,7 @@ func PublicAd(ctx *gin.Context) {
 
 	srv := services.NewPublicService()
 
-	res, err := srv.GetAdvertisements(json)
+	res, err := srv.GetAdvertisements(&json)
 	if err != nil {
 		utils.NewError(ctx, 400, err)
 		return
