@@ -15,7 +15,7 @@ import (
 
 var Amount int
 
-func init(){
+func init() {
 	flag.IntVar(&Amount, "n", 100, "Amount of fake data")
 	flag.Usage = func() {
 		fmt.Println("Usage: go run main.go -n <amount>")
@@ -31,7 +31,7 @@ func main() {
 	srv := services.NewAdminService()
 
 	rs := rand.NewSource(time.Now().UnixNano())
-    r := rand.New(rs)
+	r := rand.New(rs)
 
 	// generate fake data
 	for i := 0; i < Amount; i++ {
@@ -44,10 +44,10 @@ func main() {
 	}
 }
 
-func randAd(r *rand.Rand,i int) schemas.CreateAdRequest {
+func randAd(r *rand.Rand, i int) schemas.CreateAdRequest {
 	req := schemas.NewCreateAdRequest()
 	req.Title = fmt.Sprintf("AD-%d", i)
-	st , ed := randAge(r)
+	st, ed := randAge(r)
 	req.Conditions.AgeStart = st
 	req.Conditions.AgeEnd = ed
 	req.Conditions.Gender = randPick(r, randLen(r, 2), utils.GenderList)
@@ -57,7 +57,6 @@ func randAd(r *rand.Rand,i int) schemas.CreateAdRequest {
 	req.EndAt = time.Now().Add(time.Hour * 24 * 30)
 	return req
 }
-
 
 func randAge(r *rand.Rand) (int, int) {
 	a := r.Intn(100) + 1
@@ -70,7 +69,7 @@ func randAge(r *rand.Rand) (int, int) {
 
 // return 1 <= return val <= n
 func randLen(r *rand.Rand, n int) int {
-	return r.Intn(n+1)
+	return r.Intn(n + 1)
 }
 
 // random pick k items from arr
