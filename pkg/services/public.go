@@ -37,7 +37,7 @@ func (srv *PublicService) GetAdvertisements(req *schemas.PublicAdRequest) (any, 
 		return ads, nil
 	}
 
-	err = srv.getAdFromDB(req, &ads)
+	err = srv.GetAdFromDB(req, &ads)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +82,7 @@ func (srv *PublicService) getAdFromRedis(req *schemas.PublicAdRequest, ads *[]mo
 	return nil
 }
 
-func (srv *PublicService) getAdFromDB(req *schemas.PublicAdRequest, ads *[]models.Advertisement) error {
+func (srv *PublicService) GetAdFromDB(req *schemas.PublicAdRequest, ads *[]models.Advertisement) error {
 	// StartAt <= now <= EndAt
 	now := time.Now()
 	fmt.Println(now)
@@ -156,6 +156,27 @@ func (srv *PublicService) setAdToRedis(req *schemas.PublicAdRequest, ads *[]mode
 	_, err = rds.Expire(rds_ctx, key, time.Minute*5).Result()
 	if err != nil {
 		fmt.Println("setAdToRedis", err)
+		return err
+	}
+
+	return nil
+}
+
+
+func (srv *PublicService) SetHotSpotAdToRedis(req *schemas.PublicAdRequest, ads *[]models.Advertisement) error {
+	key := cache.PublicAdKey(req)
+	rds := srv.rds.Client
+	rds_ctx := srv.rds.Context
+
+	cmd := make([]interface{}, 0, len(*ads)*2)
+	for idx, ad := range *ads {
+		cmd = append(cmd, float64(idx+1))
+		cmd = append(cmd, fmt.Sprintf("{\"title\":\"%s\",\"endAt\":\"%s\"}", ad.Title, ad.EndAt.Format(time.RFC3339)))
+	}
+
+	_ , err := cache.UpdateCacheScript.Run(rds_ctx, rds, []string{key},cmd).Result()
+	if err != nil {
+		fmt.Println("SetHotSpotAdToRedis", err)
 		return err
 	}
 

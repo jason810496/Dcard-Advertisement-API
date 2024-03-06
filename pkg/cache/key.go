@@ -2,6 +2,7 @@ package cache
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/schemas"
 )
@@ -19,7 +20,7 @@ func defaultInt(val int) string {
 	if val == 0 {
 		return "*"
 	}
-	return fmt.Sprintf("%d", val)
+	return strconv.Itoa(val)
 }
 
 func defaultStr(val string) string {
