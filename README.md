@@ -12,9 +12,9 @@ The assignment can be broadly defined as:  <br>
     - [How to preheat & deactive ?](#how-to-preheat--deactive-)
 - [Setup : Development](#setup--development)
 - [Setup : Production ( kubernetes )](#setup--production--kubernetes)
-- [Features : Local Cache in Memory](#features--local-cache-in-memory)
-- [Features : Distributed Locks with Redis](#features--distributed-locks-with-redis)
+- [Features : Optimize `Redis` with `Lua` script & config](#features--optimize-redis-with-lua-script--config)
 - [Features : High availability with Redis Sentinel](#features--high-availability-with-redis-sentinel)
+- [Features : Local Cache in Memory](#features--local-cache-in-memory)
 - [DevOps : CI/CD](#devops--cicd)
 - [Reference](#reference)
 
@@ -178,7 +178,7 @@ flowchart TD
 
 核心的想法是: <br>
 透過 **Corn Job** 來定期的
-把 **最常出現的查詢條件** 都 **preheat** 到 Redis 中 <br>
+把 **最常出現的查詢條件** (data hotspot) 都 **preheat** 到 Redis 中 <br>
 同樣也透過 Corn Job 來將 **過期的資料** 刪除 <br>
 
 ### Data Hotspot
@@ -209,13 +209,18 @@ flowchart TD
 - **Platform** : 3 
 - **Gender** : 2 
 
-總共有 22 * 5 * 3 * 2 = 660 種熱點搜尋組合 <br>
-並對每個組合都以 `Age:Country:Platform:Gender` 做為 Key 的 **ZSet** <br>
+總共有 `22 * 5 * 3 * 2 = 660` 種熱點搜尋組合 <br>
+並對每個組合都以 `ad:Age:Country:Platform:Gender` 做為 Key 的 **ZSET** <br>
 來存所有符合這個組合的 SQL result <br>
-ZSet 的結構如下 : <br>
-- Field : `title, endAt` ( 視情況看需不需要壓縮 )
+ZSET 的結構如下 : <br>
+- Field : stringfy 的 `title, endAt` ( 視情況看需不需要壓縮 )
 - Score :  依照 SQL result 的順序 （ 1,2,3 ... ）<br> 在 pagnation 查詢時，可以直接用 `ZRANGE` 以 `O(logN)+M` 的時間複雜度取出 
-- **TTL** : **不設定** ! <br> 因為這些都是熱點資料，不設定 TTL 可以防止**快取雪崩** <br>
+- **TTL** : **設無限** ! <br> 因為這些都是熱點資料，為了防止**快取雪崩** 不設定 TTL<br> 並使用 Lua Script 來做 **Atomic 更新** <br>
+
+### Not Hotspot Data
+
+對於不是熱點的查詢條件，設置較短的 **TTL** <br>
+如：15 分鐘 <br>
 
 ### How to preheat & deactive ?
 
@@ -228,12 +233,10 @@ ZSet 的結構如下 : <br>
 > 如果在 SQL Create 的當下就直接 Preheat 到 Redis 中 <br>
 > 反而會造成 Memory 的浪費 <br>
 
-所以可以透過 **Corn Job** 來定期的 Preheat <br>
+所以可以透過 **Corn Job** 來定期的更新 cache <br>
 如：<br>
-每 10 分鐘 `select` 一次是否有快要活躍的廣告 <br>
-如果有，就 Preheat 到 Redis 中 <br>
-
-同樣也可以透過 **Corn Job** 來定期的 Deactive 過期的廣告 <br>
+每 5 分鐘枚舉過所有 Hotspot 的排列組合 <br>
+`select` 當前活躍的廣告列表，並加入到 `Redis` 的 `ZSET` 中 <br>
 
 ---
 
@@ -249,7 +252,17 @@ ZSet 的結構如下 : <br>
 - `swag` : auto generate API doc
 - `make` : Build tool
 
+### Setup
+
+```bash
+```
+
 ## Setup : Production ( kubernetes )
+
+
+## Features : Distributed Locks with Redis 
+
+Hotspot Invalid ( 快取擊穿 ) <br>
 
 ## Features : Local Cache in Memory
 
@@ -257,11 +270,6 @@ https://github.com/chenyahui/gin-cache
 
 除了在 Redis 做 Cache ， 也可以在 Local Memory 做 Cache <br>
 但是會設定更短的 TTL <br>
-
-
-## Features : Distributed Locks with Redis 
-
-Hotspot Invalid ( 快取擊穿 ) <br>
 
 ## Features : High availability with Redis Sentinel
 
