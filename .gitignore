@@ -22,7 +22,11 @@ go.work
 
 .vscode/
 tmp
+.env/local.yaml
 .env/dev.yaml
 .env/prod.yaml
 .env/test.yaml
 advertisement.db
+stateful_volumes
+redis.env
+db.env

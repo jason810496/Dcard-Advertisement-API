@@ -46,6 +46,8 @@ func flagSettings() {
 func getConfigName() string {
 
 	switch APP_MODE {
+	case "local":
+		return "local"
 	case "dev":
 		return "dev"
 	case "test":

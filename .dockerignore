@@ -1,0 +1,8 @@
+.vscode
+tmp/*
+bin/*
+.gitignore
+docker-compose.yaml
+Makefile
+README.md
+stateful_volumes

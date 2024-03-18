@@ -118,8 +118,8 @@ function create() {
             docker run -d \
                 --name $container_name \
                 -p 6379:6379 \
-                redis \
-                --requirepass $redis_password \
+                -e REDIS_PASSWORD=$redis_password \
+                bitnami/redis:latest \
             ;;
         mysql-admin)
             docker run -d \
