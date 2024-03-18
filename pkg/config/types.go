@@ -17,8 +17,10 @@ type database struct {
 }
 
 type redis struct {
-	Host string `yaml:"host"`
-	Port string `yaml:"port"`
+	Host     string `yaml:"host"`
+	Port     string `yaml:"port"`
+	Password string `yaml:"password"`
+	Username string `yaml:"user"`
 }
 
 type ServerConfig struct {

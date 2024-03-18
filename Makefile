@@ -8,6 +8,14 @@ $(EXECUTABLE): $(SOURCES)
 	$(GO) build -v -tags '$(TAGS)' -ldflags '$(EXTLDFLAGS)-s \
 	-w $(LDFLAGS)' -o bin/$@ ./cmd/$(EXECUTABLE) \
 
+build-fake-data:
+	$(GO) build -v -tags '$(TAGS)' -ldflags '$(EXTLDFLAGS)-s \
+	-w $(LDFLAGS)' -o bin/fake-data ./cmd/fake-data
+
+build-scheduler:
+	$(GO) build -v -tags '$(TAGS)' -ldflags '$(EXTLDFLAGS)-s \
+	-w $(LDFLAGS)' -o bin/scheduler ./cmd/scheduler
+
 init:
 # tools
 	$(GO) install github.com/swaggo/swag/cmd/swag@latest

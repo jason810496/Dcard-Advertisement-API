@@ -157,7 +157,7 @@ func TestPublicInvalidCountryAndPlatform(t *testing.T) {
 		)
 }
 
-func TestPublicValidInvalidOffsetAndLimit(t *testing.T){
+func TestPublicValidInvalidOffsetAndLimit(t *testing.T) {
 	r := gofight.New()
 	errorJson := `{"code":400,"errors":[{"field":"Limit","message":"Should be greater than 1"},{"field":"Offset","message":"Should be greater than 0"}]}`
 	r.GET("/api/v1/ad").
@@ -172,15 +172,15 @@ func TestPublicValidInvalidOffsetAndLimit(t *testing.T){
 		)
 }
 
-func TestPublicValidInvalidMultipleCondition(t *testing.T){
+func TestPublicValidInvalidMultipleCondition(t *testing.T) {
 	r := gofight.New()
 	errorJson := `{"code":400,"errors":[{"field":"Age","message":"Should be less than 100"},{"field":"Country","message":"Should be one of TW HK JP US KR"},{"field":"Platform","message":"Should be one of ios android web"},{"field":"Offset","message":"Should be greater than 0"}]}`
 	r.GET("/api/v1/ad").
 		SetQuery(gofight.H{
-			"age":     "101",
-			"country": "UK",
+			"age":      "101",
+			"country":  "UK",
 			"platform": "windows",
-			"offset":  "-1",
+			"offset":   "-1",
 		}).
 		Run(handlers.SetupRouter(), func(r gofight.HTTPResponse, rq gofight.HTTPRequest) {
 			assert.Equal(t, http.StatusBadRequest, r.Code)

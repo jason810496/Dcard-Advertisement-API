@@ -62,7 +62,13 @@ function parse_yaml() {
 
 function run_command() {
     echo "Running command: $command"
-    container_name=$db_kind-$mode-$database_name
+
+    if [ $db_kind == "redis" ]; then
+        container_name=$db_kind-$mode
+    else
+        container_name=$db_kind-$mode-$database_name
+    fi
+    
     case $command in
         create)
             create
@@ -111,9 +117,9 @@ function create() {
         redis)
             docker run -d \
                 --name $container_name \
-                --requirepass $database_password \
-                -p $database_port:6379 \
-                redis
+                -p 6379:6379 \
+                redis \
+                --requirepass $redis_password \
             ;;
         mysql-admin)
             docker run -d \

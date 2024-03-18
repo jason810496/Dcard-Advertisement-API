@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/jason810496/Dcard-Advertisement-API/pkg/cache"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/config"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/database"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/handlers"
@@ -13,6 +14,8 @@ import (
 func main() {
 	config.Init()
 	database.Init()
+	cache.Init()
+	cache.Rds.CheckConnection()
 
 	router := handlers.SetupRouter()
 	docs.SwaggerInfo.Title = "Dcard Advertisement API"
