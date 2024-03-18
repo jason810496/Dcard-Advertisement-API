@@ -4,12 +4,12 @@ app:
   address: 0.0.0.0:8080
   env: dev
 database:
-  kind: mysql
-  host: 127.0.0.1
-  port: 3306
-  user: root
-  password: 123456
+  kind: postgres
+  host: db
+  port: 5432
+  user: your_postgres_user
+  password: your_postgres_password
   name: advertisement
 redis:
-  host: 127.0.0.1
+  host: redis
   port: 6379

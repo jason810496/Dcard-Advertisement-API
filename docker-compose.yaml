@@ -1,0 +1,67 @@
+version: '1.0'
+
+services:
+  db:
+    image: postgres:15.1
+    ports:
+      - 5432:5432
+    env_file:
+      - .env/dev/db.env
+    restart: always
+    volumes:
+      - ./stateful_volumes/postgresql:/var/lib/postgresql/data/
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "your_postgres_user", "-d", "advertisement"]
+      interval: 2s
+      timeout: 5s
+      retries: 3
+
+  redis:
+    image: bitnami/redis:latest
+    ports:
+      - 6379:6379
+    restart: always
+    volumes:
+      - ./stateful_volumes/redis:/bitnami/redis/data
+    env_file:
+      - .env/dev/redis.env
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 5s
+      retries: 3
+
+  scheduler:
+    build: 
+      context: .
+      dockerfile: ./deployments/dev/scheduler/Dockerfile
+    restart: always
+    volumes:
+      - .env:/app/.env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  api:
+    build: 
+      context: .
+      dockerfile: ./deployments/dev/api/Dockerfile
+    ports:
+      - 8080:8080
+    restart: always
+    volumes:
+      - .env:/app/.env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      scheduler:
+        condition: service_started
+    command: ["./api","-config","dev"]
+
+networks:
+  default: 
+    name: dcard_advertisement_api

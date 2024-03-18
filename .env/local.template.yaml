@@ -1,0 +1,17 @@
+app:
+  desc: Adversement API
+  version: v1.0.0
+  address: 0.0.0.0:8080
+  env: dev
+database:
+  kind: postgres
+  host: 127.0.0.1
+  port: 5432
+  user: your_postgres_user
+  password: your_postgres_password
+  name: advertisement
+redis:
+  host: 127.0.0.1
+  port: 6379
+  user: root
+  password: your_redis_password
