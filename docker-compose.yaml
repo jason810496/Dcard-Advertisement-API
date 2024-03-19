@@ -9,7 +9,7 @@ services:
       - .env/dev/db.env
     restart: always
     volumes:
-      - ./stateful_volumes/postgresql:/var/lib/postgresql/data/
+      - ./stateful_volumes/dev/postgresql:/var/lib/postgresql/data/
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "your_postgres_user", "-d", "advertisement"]
       interval: 2s
@@ -22,7 +22,7 @@ services:
       - 6379:6379
     restart: always
     volumes:
-      - ./stateful_volumes/redis:/bitnami/redis/data
+      - ./stateful_volumes/dev/redis:/bitnami/redis/data
     env_file:
       - .env/dev/redis.env
     healthcheck:

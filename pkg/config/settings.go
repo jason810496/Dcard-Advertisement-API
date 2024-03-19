@@ -17,7 +17,7 @@ func Init() {
 
 	viper.SetConfigName(getConfigName())
 	viper.AddConfigPath(".env")
-	viper.AddConfigPath("../.env") // for test
+	viper.AddConfigPath("../../.env") // for test
 	viper.SetConfigType("yaml")
 	if err := viper.ReadInConfig(); err != nil {
 		panic(fmt.Errorf("fatal error load config file: %s \n", err))
