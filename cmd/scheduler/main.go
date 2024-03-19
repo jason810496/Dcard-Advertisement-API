@@ -44,7 +44,7 @@ func main() {
 
 	// block until you are ready to shut down
 	select {
-	case <-time.After(time.Second*6):
+	case <-time.After(time.Second * 6):
 	}
 
 	// when you're done, shut it down
@@ -54,7 +54,6 @@ func main() {
 	}
 }
 
-
 func renewCache() {
 	fmt.Println("start renew cache")
 	srv := services.NewPublicService()
@@ -62,19 +61,19 @@ func renewCache() {
 	ads := []models.Advertisement{}
 	// loop through gender, country, platform, age
 	// gender
-	for _,g := range utils.GenderList {
+	for _, g := range utils.GenderList {
 		// country
-		for _,c := range utils.CountryList {
+		for _, c := range utils.CountryList {
 			// platform
-			for _,p := range utils.PlatformList {
+			for _, p := range utils.PlatformList {
 				// age
-				for a:=18; a<=40; a++ {
+				for a := 18; a <= 40; a++ {
 					schema.Gender = g
 					schema.Country = c
 					schema.Platform = p
 					schema.Age = a
 
-					fmt.Println( fmt.Sprintln("ad:%s:%s:%s:%d",g,c,p,a))
+					fmt.Println(fmt.Sprintln("ad:%s:%s:%s:%d", g, c, p, a))
 
 					err := srv.GetAdFromDB(&schema, &ads)
 					if err != nil {
@@ -82,13 +81,13 @@ func renewCache() {
 						fmt.Println(err)
 					}
 
-					err_rds := srv.SetHotSpotAdToRedis(&schema,&ads)
+					err_rds := srv.SetHotSpotAdToRedis(&schema, &ads)
 					if err_rds != nil {
 						fmt.Println("SetHotSpotAdToRedis error")
 						fmt.Println(err_rds)
 					}
 
-					time.Sleep( time.Microsecond * 100 )
+					time.Sleep(time.Microsecond * 100)
 				}
 			}
 		}
@@ -114,7 +113,7 @@ func renewCache() {
 	fmt.Println("finish renew cache")
 }
 
-func Init(){
+func Init() {
 	config.Init()
 	database.Init()
 	cache.Init()

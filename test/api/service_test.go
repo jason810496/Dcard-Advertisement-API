@@ -30,19 +30,19 @@ func TestGetAdFromDB(t *testing.T) {
 		},
 		{
 			req: &schemas.PublicAdRequest{
-				Age: 	&[]int{18}[0],
+				Age: &[]int{18}[0],
 			},
 			wantLen: 30,
 			wantErr: nil,
 		},
 		{
-			req: &schemas.PublicAdRequest{},
+			req:     &schemas.PublicAdRequest{},
 			wantLen: 30,
 			wantErr: nil,
 		},
 		{
 			req: &schemas.PublicAdRequest{
-				Age:      &[]int{90}[0],
+				Age: &[]int{90}[0],
 			},
 			wantLen: 0,
 			wantErr: nil,

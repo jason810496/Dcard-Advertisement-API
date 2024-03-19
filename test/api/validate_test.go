@@ -10,12 +10,12 @@ import (
 )
 
 func TestPublicAgeLowerBound(t *testing.T) {
-	SetupFunction(t,ClearDB,ClearRedis)
+	SetupFunction(t, ClearDB, ClearRedis)
 	defer TeardownFunction(t)
 
 	tests := []struct {
-		age string
-		code int
+		age       string
+		code      int
 		errorJson string
 	}{
 		{"0", http.StatusBadRequest, `{"code":400,"errors":[{"field":"Age","message":"Should be greater than 1"}]}`},
@@ -38,25 +38,24 @@ func TestPublicAgeLowerBound(t *testing.T) {
 					assert.Equal(t, tt.code, r.Code)
 					assert.Equal(t, tt.errorJson, r.Body.String())
 				},
-			)
+				)
 		})
 	}
 }
 
 func TestPublicAgeUpperBound(t *testing.T) {
-	SetupFunction(t,ClearDB,ClearRedis)
+	SetupFunction(t, ClearDB, ClearRedis)
 	defer TeardownFunction(t)
 
 	tests := []struct {
-		age string
-		code int
+		age       string
+		code      int
 		errorJson string
 	}{
 		{"101", http.StatusBadRequest, `{"code":400,"errors":[{"field":"Age","message":"Should be less than 100"}]}`},
 		{"404", http.StatusBadRequest, `{"code":400,"errors":[{"field":"Age","message":"Should be less than 100"}]}`},
 		{"100", http.StatusOK, "[]"},
 	}
-
 
 	for _, tt := range tests {
 		t.Run(tt.age, func(t *testing.T) {
@@ -72,18 +71,18 @@ func TestPublicAgeUpperBound(t *testing.T) {
 					assert.Equal(t, tt.code, r.Code)
 					assert.Equal(t, tt.errorJson, r.Body.String())
 				},
-			)
+				)
 		})
 	}
 }
 
 func TestPublicCountry(t *testing.T) {
-	SetupFunction(t,ClearDB,ClearRedis)
+	SetupFunction(t, ClearDB, ClearRedis)
 	defer TeardownFunction(t)
 
 	tests := []struct {
-		country string
-		code int
+		country   string
+		code      int
 		errorJson string
 	}{
 		{"TW", http.StatusOK, "[]"},
@@ -110,19 +109,19 @@ func TestPublicCountry(t *testing.T) {
 					assert.Equal(t, tt.code, r.Code)
 					assert.Equal(t, tt.errorJson, r.Body.String())
 				},
-			)
+				)
 		})
 	}
 
 }
 
 func TestPublicPlatform(t *testing.T) {
-	SetupFunction(t,ClearDB,ClearRedis)
+	SetupFunction(t, ClearDB, ClearRedis)
 	defer TeardownFunction(t)
 
 	tests := []struct {
-		platform string
-		code int
+		platform  string
+		code      int
 		errorJson string
 	}{
 		{"ios", http.StatusOK, "[]"},
@@ -147,18 +146,18 @@ func TestPublicPlatform(t *testing.T) {
 					assert.Equal(t, tt.code, r.Code)
 					assert.Equal(t, tt.errorJson, r.Body.String())
 				},
-			)
+				)
 		})
 	}
 }
 
 func TestPublicGender(t *testing.T) {
-	SetupFunction(t,ClearDB,ClearRedis)
+	SetupFunction(t, ClearDB, ClearRedis)
 	defer TeardownFunction(t)
 
 	tests := []struct {
-		gender string
-		code int
+		gender    string
+		code      int
 		errorJson string
 	}{
 		{"F", http.StatusOK, "[]"},
@@ -182,18 +181,18 @@ func TestPublicGender(t *testing.T) {
 					assert.Equal(t, tt.code, r.Code)
 					assert.Equal(t, tt.errorJson, r.Body.String())
 				},
-			)
+				)
 		})
 	}
 }
 
 func TestPublicLimit(t *testing.T) {
-	SetupFunction(t,ClearDB,ClearRedis)
+	SetupFunction(t, ClearDB, ClearRedis)
 	defer TeardownFunction(t)
 
 	tests := []struct {
-		limit string
-		code int
+		limit     string
+		code      int
 		errorJson string
 	}{
 		{"0", http.StatusBadRequest, `{"code":400,"errors":[{"field":"Limit","message":"Should be greater than 1"}]}`},
@@ -217,19 +216,19 @@ func TestPublicLimit(t *testing.T) {
 					assert.Equal(t, tt.code, r.Code)
 					assert.Equal(t, tt.errorJson, r.Body.String())
 				},
-			)
+				)
 		})
 	}
 }
 
 func TestPublicOffset(t *testing.T) {
 
-	SetupFunction(t,ClearDB,ClearRedis)
+	SetupFunction(t, ClearDB, ClearRedis)
 	defer TeardownFunction(t)
 
 	tests := []struct {
-		offset string
-		code int
+		offset    string
+		code      int
 		errorJson string
 	}{
 		{"0", http.StatusBadRequest, `{"code":400,"errors":[{"field":"Offset","message":"Should be greater than 0"}]}`},
@@ -253,7 +252,7 @@ func TestPublicOffset(t *testing.T) {
 					assert.Equal(t, tt.code, r.Code)
 					assert.Equal(t, tt.errorJson, r.Body.String())
 				},
-			)
+				)
 		})
 	}
 }
