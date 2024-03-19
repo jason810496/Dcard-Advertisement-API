@@ -32,7 +32,7 @@ func NewPublicService() *PublicService {
 func (srv *PublicService) GetAdvertisements(req *schemas.PublicAdRequest) (any, error) {
 	var ads []models.Advertisement
 	// get from redis
-	err := srv.getAdFromRedis(req, &ads)
+	err := srv.GetAdFromRedis(req, &ads)
 	if err == nil {
 		return ads, nil
 	}
@@ -44,13 +44,29 @@ func (srv *PublicService) GetAdvertisements(req *schemas.PublicAdRequest) (any, 
 
 	// TTL: 5 minutes
 	// store full result to redis in goroutine
-	go srv.setAdToRedis(req, &ads)
+	go srv.SetAdToRedis(req, &ads)
+
+	// if ads is empty, return [] instead of nil
+	if len(ads) == 0 {
+		ads = make([]models.Advertisement, 0)
+		return ads, nil
+	}
+
+	result_len := len(ads)
+	// case: offset >= result_len
+	if req.Offset >= result_len {
+		return nil, nil
+	}
+	// case: offset+limit > result_len
+	if req.Offset+req.Limit > result_len {
+		return ads[req.Offset:], nil
+	}
 
 	// set offset and limit for sql result
 	return ads[req.Offset : req.Offset+req.Limit], nil
 }
 
-func (srv *PublicService) getAdFromRedis(req *schemas.PublicAdRequest, ads *[]models.Advertisement) error {
+func (srv *PublicService) GetAdFromRedis(req *schemas.PublicAdRequest, ads *[]models.Advertisement) error {
 	key := cache.PublicAdKey(req)
 	rds := srv.rds.Client
 	rds_ctx := srv.rds.Context
@@ -106,8 +122,8 @@ func (srv *PublicService) GetAdFromDB(req *schemas.PublicAdRequest, ads *[]model
 	}
 
 	// has Age condition
-	if req.Age != 0 {
-		tx = tx.Where("age_start <= ? AND age_end >= ?", req.Age, req.Age)
+	if req.Age != nil {
+		tx = tx.Where("age_start <= ? AND age_end >= ?", *req.Age, *req.Age)
 	}
 
 	// limit and offset
@@ -120,7 +136,7 @@ func (srv *PublicService) GetAdFromDB(req *schemas.PublicAdRequest, ads *[]model
 	return nil
 }
 
-func (srv *PublicService) setAdToRedis(req *schemas.PublicAdRequest, ads *[]models.Advertisement) error {
+func (srv *PublicService) SetAdToRedis(req *schemas.PublicAdRequest, ads *[]models.Advertisement) error {
 	key := cache.PublicAdKey(req)
 	rds := srv.rds.Client
 	rds_ctx := srv.rds.Context
@@ -134,7 +150,7 @@ func (srv *PublicService) setAdToRedis(req *schemas.PublicAdRequest, ads *[]mode
 			},
 		}).Result()
 		if err != nil {
-			fmt.Println("setAdToRedis", err)
+			fmt.Println("SetAdToRedis", err)
 			return err
 		}
 		return nil
@@ -149,19 +165,18 @@ func (srv *PublicService) setAdToRedis(req *schemas.PublicAdRequest, ads *[]mode
 	}
 	_, err := rds.Do(rds_ctx, cmd...).Result()
 	if err != nil {
-		fmt.Println("setAdToRedis", err)
+		fmt.Println("SetAdToRedis", err)
 		return err
 	}
 	// set expire
 	_, err = rds.Expire(rds_ctx, key, time.Minute*5).Result()
 	if err != nil {
-		fmt.Println("setAdToRedis", err)
+		fmt.Println("SetAdToRedis", err)
 		return err
 	}
 
 	return nil
 }
-
 
 func (srv *PublicService) SetHotSpotAdToRedis(req *schemas.PublicAdRequest, ads *[]models.Advertisement) error {
 	key := cache.PublicAdKey(req)
@@ -174,7 +189,7 @@ func (srv *PublicService) SetHotSpotAdToRedis(req *schemas.PublicAdRequest, ads 
 		cmd = append(cmd, fmt.Sprintf("{\"title\":\"%s\",\"endAt\":\"%s\"}", ad.Title, ad.EndAt.Format(time.RFC3339)))
 	}
 
-	_ , err := cache.UpdateCacheScript.Run(rds_ctx, rds, []string{key},cmd).Result()
+	_, err := cache.UpdateCacheScript.Run(rds_ctx, rds, []string{key}, cmd).Result()
 	if err != nil {
 		fmt.Println("SetHotSpotAdToRedis", err)
 		return err
