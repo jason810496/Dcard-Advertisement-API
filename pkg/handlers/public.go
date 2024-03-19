@@ -7,7 +7,6 @@ import (
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/schemas"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/services"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/utils"
-	"github.com/jason810496/Dcard-Advertisement-API/pkg/validate"
 )
 
 // PublicAdAPI godoc
@@ -30,13 +29,6 @@ func PublicAd(ctx *gin.Context) {
 
 	if err := ctx.ShouldBindQuery(&json); err != nil {
 		utils.NewError(ctx, 400, err)
-		return
-	}
-
-	// go-playground/validator/v10 can't validate
-	// omitempty,gte=1 when the value is 0
-	if err := validate.PublicAdRequestAge(&json); err != nil {
-		utils.NewAgeError(ctx, 400)
 		return
 	}
 

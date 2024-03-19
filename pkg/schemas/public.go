@@ -10,7 +10,7 @@ type PublicAdResponse struct {
 }
 
 type PublicAdRequest struct {
-	Age      int    `form:"age" binding:"omitempty,numeric,min=1,max=100" example:"18"`
+	Age      *int    `form:"age" binding:"omitempty,numeric,min=1,max=100" example:"18"`
 	Country  string `form:"country" binding:"omitempty,oneof=TW HK JP US KR" example:"TW"`
 	Platform string `form:"platform" binding:"omitempty,oneof=ios android web" example:"ios"`
 	Gender   string `form:"gender" binding:"omitempty,oneof=F M" example:"F"`

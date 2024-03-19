@@ -16,11 +16,11 @@ func PublicAdKey(req *schemas.PublicAdRequest) string {
 		defaultStr(req.Gender))
 }
 
-func defaultInt(val int) string {
-	if val == 0 {
+func defaultInt(val *int) string {
+	if val == nil {
 		return "*"
 	}
-	return strconv.Itoa(val)
+	return strconv.Itoa(*val)
 }
 
 func defaultStr(val string) string {
