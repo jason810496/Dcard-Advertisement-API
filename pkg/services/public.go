@@ -153,9 +153,13 @@ func (srv *PublicService) SetAdToRedis(req *schemas.PublicAdRequest, ads *[]mode
 			fmt.Println("SetAdToRedis", err)
 			return err
 		}
+		// set expire
+		_, err = rds.Expire(rds_ctx, key, time.Minute*5).Result()
+		if err != nil {
+			return err
+		}
 		return nil
 	}
-
 	// use `redis.Do` is more efficient than `redis.ZAdd`
 	cmd := make([]interface{}, 0, len(*ads)*2+2)
 	cmd = append(cmd, "ZADD", key)
