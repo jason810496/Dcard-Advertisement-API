@@ -1,6 +1,7 @@
 package api_test
 
 import (
+	"fmt"
 	"net/http"
 	"testing"
 
@@ -257,48 +258,72 @@ func TestPublicOffset(t *testing.T) {
 	}
 }
 
-func TestPublicInvalidCountryAndPlatform(t *testing.T) {
-	r := gofight.New()
-	errorJson := `{"code":400,"errors":[{"field":"Country","message":"Should be one of TW HK JP US KR"},{"field":"Platform","message":"Should be one of ios android web"}]}`
-	r.GET("/api/v1/ad").
-		SetQuery(gofight.H{
-			"country":  "UK",
-			"platform": "windows",
-		}).
-		Run(handlers.SetupRouter(), func(r gofight.HTTPResponse, rq gofight.HTTPRequest) {
-			assert.Equal(t, http.StatusBadRequest, r.Code)
-			assert.Equal(t, errorJson, r.Body.String())
-		},
-		)
-}
+func TestPublicMultipleCondition(t *testing.T) {
+	SetupFunction(t, ClearDB, ClearRedis)
+	defer TeardownFunction(t)
 
-func TestPublicValidInvalidOffsetAndLimit(t *testing.T) {
-	r := gofight.New()
-	errorJson := `{"code":400,"errors":[{"field":"Limit","message":"Should be greater than 1"},{"field":"Offset","message":"Should be greater than 0"}]}`
-	r.GET("/api/v1/ad").
-		SetQuery(gofight.H{
-			"limit":  "-1",
-			"offset": "-1",
-		}).
-		Run(handlers.SetupRouter(), func(r gofight.HTTPResponse, rq gofight.HTTPRequest) {
-			assert.Equal(t, http.StatusBadRequest, r.Code)
-			assert.Equal(t, errorJson, r.Body.String())
+	tests := []struct {
+		condition map[string]string
+		code      int
+		errorJson string
+	}{
+		{
+			map[string]string{
+				"age":      "101",
+				"country":  "UK",
+				"platform": "windows",
+				"offset":   "-1"},
+			http.StatusBadRequest,
+			`{"code":400,"errors":[{"field":"Age","message":"Should be less than 100"},{"field":"Country","message":"Should be one of TW HK JP US KR"},{"field":"Platform","message":"Should be one of ios android web"},{"field":"Offset","message":"Should be greater than 0"}]}`,
 		},
-		)
-}
+		{
+			map[string]string{
+				"age":      "50",
+				"country":  "TW",
+				"platform": "linux",
+			},
+			http.StatusBadRequest,
+			`{"code":400,"errors":[{"field":"Platform","message":"Should be one of ios android web"}]}`,
+		},
+		{
+			map[string]string{},
+			http.StatusOK,
+			"[]",
+		},
+		{
+			map[string]string{
+				"age":      "0",
+				"offset":   "10",
+				"limit":    "1",
+			},
+			http.StatusBadRequest,
+			`{"code":400,"errors":[{"field":"Age","message":"Should be greater than 1"}]}`,
+		},
+		{
+			map[string]string{
+				"age":      "50",
+				"offset":   "0",
+				"limit":    "0",
+			},
+			http.StatusBadRequest,
+			`{"code":400,"errors":[{"field":"Limit","message":"Should be greater than 1"},{"field":"Offset","message":"Should be greater than 0"}]}`,
+		},
+	}
 
-func TestPublicValidInvalidMultipleCondition(t *testing.T) {
-	r := gofight.New()
-	errorJson := `{"code":400,"errors":[{"field":"Age","message":"Should be less than 100"},{"field":"Country","message":"Should be one of TW HK JP US KR"},{"field":"Platform","message":"Should be one of ios android web"},{"field":"Offset","message":"Should be greater than 0"}]}`
-	r.GET("/api/v1/ad").
-		SetQuery(gofight.H{
-			"age":      "101",
-			"country":  "UK",
-			"platform": "windows",
-			"offset":   "-1",
-		}).
-		Run(handlers.SetupRouter(), func(r gofight.HTTPResponse, rq gofight.HTTPRequest) {
-			assert.Equal(t, http.StatusBadRequest, r.Code)
-			assert.Equal(t, errorJson, r.Body.String())
+	for _, tt := range tests {
+		t.Run(fmt.Sprintf("%v", tt.condition), func(t *testing.T) {
+			SetupFunction(t)
+			defer TeardownFunction(t)
+
+			r := gofight.New()
+			r.GET("/api/v1/ad").
+				SetQuery(tt.condition).
+				Run(handlers.SetupRouter(), func(r gofight.HTTPResponse, rq gofight.HTTPRequest) {
+					fmt.Println(r.Body.String())
+					assert.Equal(t, tt.code, r.Code)
+					assert.Equal(t, tt.errorJson, r.Body.String())
+				},
+				)
 		})
+	}
 }
