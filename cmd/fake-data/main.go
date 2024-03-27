@@ -18,14 +18,15 @@ var Amount int
 func init() {
 	flag.IntVar(&Amount, "n", 100, "Amount of fake data")
 	flag.Usage = func() {
-		fmt.Println("Usage: go run main.go -n <amount>")
+		fmt.Println("Usage: go run main.go -n <amount> -config <config mode>")
 		flag.PrintDefaults()
 	}
 }
 
 func main() {
-	flag.Parse()
 	config.Init()
+	flag.Parse()
+	
 	database.Init()
 	database.CheckConnection()
 	srv := services.NewAdminService()
