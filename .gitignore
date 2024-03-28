@@ -26,6 +26,7 @@ tmp
 .env/dev.yaml
 .env/prod.yaml
 .env/test.yaml
+.env/kubernetes.yaml
 advertisement.db
 stateful_volumes
 redis.env

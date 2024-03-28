@@ -46,14 +46,8 @@ func flagSettings() {
 func getConfigName() string {
 
 	switch APP_MODE {
-	case "local":
-		return "local"
-	case "dev":
-		return "dev"
-	case "test":
-		return "test"
-	case "prod":
-		return "prod"
+	case "local", "dev", "test", "prod", "staging","kubernetes":
+		return APP_MODE
 	default:
 		panic("Invalid app mode  `" + APP_MODE + "`")
 	}
