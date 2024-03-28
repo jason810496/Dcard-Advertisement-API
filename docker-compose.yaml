@@ -31,6 +31,20 @@ services:
       timeout: 5s
       retries: 3
 
+  generator:
+    build: 
+      context: .
+      dockerfile: ./deployments/dev/generator/Dockerfile
+    restart: always
+    volumes:
+      - .env:/app/.env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: ["./generator","-config","dev"]
+
   scheduler:
     build: 
       context: .
@@ -43,6 +57,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    command: ["./scheduler","-config","dev"]
 
   api:
     build: 

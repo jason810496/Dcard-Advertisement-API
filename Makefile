@@ -8,9 +8,9 @@ $(EXECUTABLE): $(SOURCES)
 	$(GO) build -v -tags '$(TAGS)' -ldflags '$(EXTLDFLAGS)-s \
 	-w $(LDFLAGS)' -o bin/$@ ./cmd/$(EXECUTABLE) 
 
-build-fake-data:
+build-generator:
 	$(GO) build -v -tags '$(TAGS)' -ldflags '$(EXTLDFLAGS)-s \
-	-w $(LDFLAGS)' -o bin/fake-data ./cmd/fake-data
+	-w $(LDFLAGS)' -o bin/generator ./cmd/generator
 
 build-scheduler:
 	$(GO) build -v -tags '$(TAGS)' -ldflags '$(EXTLDFLAGS)-s \
@@ -59,8 +59,10 @@ local-clean:
 minikube-reload-image:
 	minikube image rm dcard-advertisement-api-api:latest
 	minikube image rm dcard-advertisement-api-scheduler:latest
+	minikube image load dcard-advertisement-api-generator:latest
 	minikube image load dcard-advertisement-api-api:latest
 	minikube image load dcard-advertisement-api-scheduler:latest  
+	minikube image load dcard-advertisement-api-generator:latest
 
 .PHONY: kube-config
 kube-config:
@@ -111,6 +113,14 @@ kube-scheduler:
 .PHONY: kube-del-scheduler
 kube-del-scheduler:
 	kubectl delete -f ./deployments/kubernetes/scheduler/deployment.yaml
+
+.PHONY: kube-generator
+kube-generator:
+	kubectl apply -f ./deployments/kubernetes/generator/pod.yaml
+
+.PHONY: kube-del-generator
+kube-del-generator:
+	kubectl delete -f ./deployments/kubernetes/generator/pod.yaml
 
 .PHONY: kube-all
 kube-all: kube-reload-image kube-config kube-database kube-redis kube-api kube-scheduler
