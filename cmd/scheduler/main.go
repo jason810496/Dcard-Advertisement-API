@@ -1,7 +1,10 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/go-co-op/gocron/v2"
@@ -16,6 +19,10 @@ import (
 
 func main() {
 	Init()
+
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
 	// create a scheduler
 	s, err := gocron.NewScheduler()
 	if err != nil {
@@ -23,10 +30,11 @@ func main() {
 		fmt.Println(err)
 	}
 
+	renewCache()
 	// add a job to the scheduler
 	j, err := s.NewJob(
 		gocron.DurationJob(
-			5*time.Second,
+			10*time.Second,
 		),
 		gocron.NewTask(
 			renewCache,
@@ -44,14 +52,17 @@ func main() {
 
 	// block until you are ready to shut down
 	select {
-	case <-time.After(time.Second * 6):
+		case <-ctx.Done():
 	}
 
 	// when you're done, shut it down
 	err = s.Shutdown()
 	if err != nil {
 		// handle error
+		fmt.Println(err)
 	}
+
+	fmt.Println("scheduler is shut down")
 }
 
 func renewCache() {
@@ -71,7 +82,7 @@ func renewCache() {
 					schema.Gender = g
 					schema.Country = c
 					schema.Platform = p
-					schema.Age = a
+					schema.Age = &a
 
 					fmt.Println(fmt.Sprintln("ad:%s:%s:%s:%d", g, c, p, a))
 
@@ -88,6 +99,7 @@ func renewCache() {
 					}
 
 					time.Sleep(time.Microsecond * 100)
+					// time.Sleep(time.Second * 1)
 				}
 			}
 		}
