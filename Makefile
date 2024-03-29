@@ -125,7 +125,31 @@ kube-del-generator:
 .PHONY: kube-all
 kube-all: kube-reload-image kube-config kube-database kube-redis kube-api kube-scheduler
 
-
 .PHONY: kube-del-all
 kube-del-all: kube-del-config kube-del-database kube-del-redis kube-del-api kube-del-scheduler
 
+.PHONY: kube-k6-operator
+kube-k6-operator:
+	kubectl apply -f ./deployments/kubernetes/k6/k6-operator.yaml
+
+.PHONY: kube-del-k6-operator
+kube-del-k6-operator:
+	kubectl delete -f ./deployments/kubernetes/k6/k6-operator.yaml
+
+.PHONY: kube-k6-config
+kube-k6-config:
+	kubectl create configmap k6-script-config --from-file=k6/load-test.js
+	kubectl create configmap k6-config --from-env-file=.env/dev/k6-operator.env
+
+.PHONY: kube-del-k6-config
+kube-del-k6-config:
+	kubectl delete configmap k6-script-config
+	kubectl delete configmap k6-config
+
+.PHONY: kube-k6-resource
+kube-k6-resource:
+	kubectl apply -f ./deployments/kubernetes/k6/k6-resource.yaml
+
+.PHONY: kube-del-k6-resource
+kube-del-k6-resource:
+	kubectl delete -f ./deployments/kubernetes/k6/k6-resource.yaml

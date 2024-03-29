@@ -76,7 +76,16 @@ services:
       scheduler:
         condition: service_started
     command: ["./api","-config","dev"]
+  
+  k6-runner:
+    build: 
+      context: .
+      dockerfile: ./deployments/dev/k6/Dockerfile.runner
 
+  k6-starter:
+    build: 
+      context: .
+      dockerfile: ./deployments/dev/k6/Dockerfile.starter
 networks:
   default: 
     name: dcard_advertisement_api
