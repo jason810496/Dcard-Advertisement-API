@@ -238,4 +238,12 @@ gke-k6-resource:
 gke-del-k6-resource:
 	kubectl delete -f ./deployments/gke/k6/k6-resource.yaml
 
+.PHONY: gke-k6
+gke-k6: kube-k6-operator kube-k6-config gke-k6-resource
+
+.PHONY: gke-del-k6
+gke-del-k6: gke-del-k6-resource kube-del-k6-config
+
+
+
 
