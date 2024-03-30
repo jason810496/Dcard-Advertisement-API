@@ -225,7 +225,7 @@ gke-del-generator:
 	kubectl delete -f ./deployments/gke/generator/pod.yaml
 
 .PHONY: gke-all
-gke-all: kube-config gke-database gke-redis gke-api gke-generator gke-scheduler
+gke-all: kube-config gke-database gke-redis gke-api gke-generator
 
 .PHONY: gke-del-all
 gke-del-all: gke-del-database gke-del-redis gke-del-api gke-del-generator gke-del-scheduler kube-del-config 
@@ -245,5 +245,18 @@ gke-k6: kube-k6-operator kube-k6-config gke-k6-resource
 gke-del-k6: gke-del-k6-resource kube-del-k6-config
 
 
+.PHONY: grafana-cloud-config
+grafana-cloud-config:
+	kubectl create configmap grafana-cloud-config --from-env-file=.env/kubernetes/k6-grafana-cloud-prometheus.env
 
+.PHONY: grafana-cloud-del-config
+grafana-cloud-del-config:
+	kubectl delete configmap grafana-cloud-config
 
+.PHONY: grafana-cloud-secret
+grafana-cloud-secret:
+	kubectl create secret generic grafana-cloud-secret --from-env-file=.env/kubernetes/k6-grafana-cloud-secret.env
+
+.PHONY: grafana-cloud-del-secret
+grafana-cloud-del-secret:
+	kubectl delete secret grafana-cloud-secret

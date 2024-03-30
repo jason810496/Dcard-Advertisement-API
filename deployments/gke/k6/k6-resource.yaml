@@ -35,7 +35,16 @@ spec:
           configMapKeyRef:
             name: k6-config
             key: AGE_END
-    metadata:
+      # write metrics to prometheus (grafana cloud)
+      # https://github.com/javaducky/demo-k6-operator/blob/main/resources/k6-output-grafana-cloud.yaml
+      - name: K6_OUT
+        value: experimental-prometheus-rw
+    envFrom:
+     - configMapRef:
+         name: grafana-cloud-config
+     - secretRef:
+         name: grafana-cloud-secret
+    # metadata:
       # labels:
       #   cool-label: foo
       # annotations:
