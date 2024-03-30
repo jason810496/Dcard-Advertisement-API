@@ -26,5 +26,5 @@ variable "region" {
 
 variable "cluster_name" {
   description = "The name of the cluster"
-  default     = "${var.project_id}-cluster"
+  default     = "simple-autopilot-public"
 }
