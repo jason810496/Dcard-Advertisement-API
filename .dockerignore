@@ -6,3 +6,6 @@ docker-compose.yaml
 Makefile
 README.md
 stateful_volumes
+deployments
+scripts
+k6

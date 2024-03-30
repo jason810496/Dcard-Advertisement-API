@@ -1,6 +1,7 @@
 # build stage
-FROM golang:alpine AS builder
+FROM golang:1.21-alpine AS builder
 ADD . /src
+RUN cd /src && go mod download
 RUN cd /src && go build -v -o bin/generator ./cmd/generator
 
 ADD .env /src/.env
