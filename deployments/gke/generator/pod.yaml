@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: generator-pod
+  labels:
+    app: generator
+spec:
+  containers:
+    - name: generator-container
+      image: jasonbigcow/dcard-advertisement-api-generator:latest
+      imagePullPolicy: Always
+      command: ["./generator"]
+      args: ["-config","kubernetes"]
+       # resources:
+    #   requests:
+    #     memory: "64Mi"
+    #     cpu: "250m"
+    #   limits:
+    #     memory: "128Mi"
+    #     cpu: "500m"
+  restartPolicy: Never
+  volumes:
+    - name: api-scheduler-config-volume
+      configMap:
+        name: api-scheduler-config
+        items:
+          - key: kubernetes.yaml
+            path: .env/kubernetes.yaml

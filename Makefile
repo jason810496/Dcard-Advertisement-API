@@ -153,3 +153,89 @@ kube-k6-resource:
 .PHONY: kube-del-k6-resource
 kube-del-k6-resource:
 	kubectl delete -f ./deployments/kubernetes/k6/k6-resource.yaml
+
+.PHONY: build-image-linux
+build-image-linux:
+	docker build -t dcard-advertisement-api-api:latest -f ./deployments/dev/api/Dockerfile --platform=linux/amd64 . 
+	docker build -t dcard-advertisement-api-scheduler:latest -f ./deployments/dev/scheduler/Dockerfile --platform=linux/amd64 .
+	docker build -t dcard-advertisement-api-generator:latest -f ./deployments/dev/generator/Dockerfile --platform=linux/amd64 .
+	docker build -t dcard-advertisement-api-k6-runner:latest -f ./deployments/dev/k6/Dockerfile.runner --platform=linux/amd64 .
+	docker build -t dcard-advertisement-api-k6-starter:latest -f ./deployments/dev/k6/Dockerfile.starter --platform=linux/amd64 .
+
+.PHONY: tag-image
+tag-image:
+	docker tag dcard-advertisement-api-api:latest jasonbigcow/dcard-advertisement-api-api:latest
+	docker tag dcard-advertisement-api-scheduler:latest jasonbigcow/dcard-advertisement-api-scheduler:latest
+	docker tag dcard-advertisement-api-generator:latest jasonbigcow/dcard-advertisement-api-generator:latest
+	docker tag dcard-advertisement-api-k6-runner:latest jasonbigcow/dcard-advertisement-api-k6-runner:latest
+	docker tag dcard-advertisement-api-k6-starter:latest jasonbigcow/dcard-advertisement-api-k6-starter:latest
+
+.PHONY: push-image
+push-image:
+	docker push jasonbigcow/dcard-advertisement-api-api:latest
+	docker push jasonbigcow/dcard-advertisement-api-scheduler:latest
+	docker push jasonbigcow/dcard-advertisement-api-generator:latest
+	docker push jasonbigcow/dcard-advertisement-api-k6-runner:latest
+	docker push jasonbigcow/dcard-advertisement-api-k6-starter:latest
+
+.PHONY: gke-database
+gke-database:
+	kubectl apply -f ./deployments/gke/database/statefulset.yaml
+	kubectl apply -f ./deployments/gke/database/service.yaml
+
+.PHONY: gke-del-database
+gke-del-database:
+	kubectl delete -f ./deployments/gke/database/statefulset.yaml
+	kubectl delete -f ./deployments/gke/database/service.yaml
+
+.PHONY: gke-redis
+gke-redis:
+	kubectl apply -f ./deployments/gke/redis/statefulset.yaml
+	kubectl apply -f ./deployments/gke/redis/service.yaml
+
+.PHONY: gke-del-redis
+gke-del-redis:
+	kubectl delete -f ./deployments/gke/redis/statefulset.yaml
+	kubectl delete -f ./deployments/gke/redis/service.yaml
+
+.PHONY: gke-api
+gke-api:
+	kubectl apply -f ./deployments/gke/api/deployment.yaml
+	kubectl apply -f ./deployments/gke/api/service.yaml
+
+.PHONY: gke-del-api
+gke-del-api:
+	kubectl delete -f ./deployments/gke/api/deployment.yaml
+	kubectl delete -f ./deployments/gke/api/service.yaml
+
+.PHONY: gke-scheduler
+gke-scheduler:
+	kubectl apply -f ./deployments/gke/scheduler/deployment.yaml
+
+.PHONY: gke-del-scheduler
+gke-del-scheduler:
+	kubectl delete -f ./deployments/gke/scheduler/deployment.yaml
+
+.PHONY: gke-generator
+gke-generator:
+	kubectl apply -f ./deployments/gke/generator/pod.yaml
+
+.PHONY: gke-del-generator
+gke-del-generator:
+	kubectl delete -f ./deployments/gke/generator/pod.yaml
+
+.PHONY: gke-all
+gke-all: kube-config gke-database gke-redis gke-api gke-generator gke-scheduler
+
+.PHONY: gke-del-all
+gke-del-all: gke-del-database gke-del-redis gke-del-api gke-del-generator gke-del-scheduler kube-del-config 
+
+.PHONY: gke-k6-resource
+gke-k6-resource:
+	kubectl apply -f ./deployments/gke/k6/k6-resource.yaml
+
+.PHONY: gke-del-k6-resource
+gke-del-k6-resource:
+	kubectl delete -f ./deployments/gke/k6/k6-resource.yaml
+
+
