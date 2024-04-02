@@ -13,7 +13,7 @@ spec:
   # arguments: --out cloud
   separate: false
   runner:
-    image: jasonbigcow/dcard-advertisement-api-k6-runner:latest
+    image: jasonbigcow/dcard-advertisement-api-k6-runner:v1
     imagePullPolicy: IfNotPresent
     env: 
       - name: API_HOST
@@ -62,7 +62,7 @@ spec:
         cpu: 100m
         memory: 500Mi
   starter:
-    image: jasonbigcow/dcard-advertisement-api-k6-starter:latest  
+    image: jasonbigcow/dcard-advertisement-api-k6-starter:v1  
     imagePullPolicy: IfNotPresent 
     metadata:
       # labels:

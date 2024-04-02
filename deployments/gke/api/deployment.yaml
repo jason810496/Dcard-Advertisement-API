@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: api-container
-          image: jasonbigcow/dcard-advertisement-api-api:latest
+          image: jasonbigcow/dcard-advertisement-api-api:v1
           imagePullPolicy: Always
           command: ["./api"]
           args: ["-config","kubernetes"]

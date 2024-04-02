@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: scheduler-container
-          image: jasonbigcow/dcard-advertisement-api-scheduler:latest
+          image: jasonbigcow/dcard-advertisement-api-scheduler:v1
           imagePullPolicy: Always
           command: ["./scheduler"]
           args: ["-config","kubernetes"]
