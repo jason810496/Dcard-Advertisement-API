@@ -9,6 +9,7 @@ env:
     IMAGE_NAME: dcard-advertisement-api-k6-runner
     DOCKERFILE_PATH: ./deployments/dev/k6/Dockerfile.runner
     BUILD_CONTEXT: .
+    IMAGE_TAG: v1
 jobs:
     docker:
         runs-on: ubuntu-latest
@@ -32,13 +33,13 @@ jobs:
                 context: ${{ env.BUILD_CONTEXT }}
                 file: ${{ env.DOCKERFILE_PATH }}
                 platforms: linux/amd64,linux/arm64
-                tags: docker.io/${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+                tags: docker.io/${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
                 outputs: type=oci,dest=/tmp/image.tar
                 cache-from: type=gha
                 cache-to: type=gha,mode=max
             - name: Import image in containerd
               run: |
-                sudo ctr i import --base-name docker.io/${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest --digests --all-platforms /tmp/image.tar
+                sudo ctr i import --base-name docker.io/${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} --digests --all-platforms /tmp/image.tar
             - name: Push image to containerd
               run: |
-                sudo ctr i push --user "${{ secrets.DOCKER_USERNAME }}:${{ secrets.DOCKER_PASSWORD }}" docker.io/${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+                sudo ctr i push --user "${{ secrets.DOCKER_USERNAME }}:${{ secrets.DOCKER_PASSWORD }}" docker.io/${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
