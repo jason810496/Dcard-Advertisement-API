@@ -1,10 +1,14 @@
 name: Build API Image
 
 on:
+    # push:
+    #     branches: [main, release/*]
+    # pull_request:
+    #     branches: [main, release/*]
     push:
-        branches: [main, release/*]
+        branches: [build]
     pull_request:
-        branches: [main, release/*]
+        branches: [build]
 env:
     IMAGE_NAME: dcard-advertisement-api-api
     DOCKERFILE_PATH: ./deployments/dev/api/Dockerfile
