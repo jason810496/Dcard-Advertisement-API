@@ -9,3 +9,4 @@ stateful_volumes
 deployments
 scripts
 k6
+.env

@@ -1,10 +1,14 @@
 name: Build K6 Runner Image
 
 on:
+    # push:
+    #     branches: [main, release/*]
+    # pull_request:
+    #     branches: [main, release/*]
     push:
-        branches: [main, release/*]
+        branches: [build]
     pull_request:
-        branches: [main, release/*]
+        branches: [build]
 env:
     IMAGE_NAME: dcard-advertisement-api-k6-runner
     DOCKERFILE_PATH: ./deployments/dev/k6/Dockerfile.runner

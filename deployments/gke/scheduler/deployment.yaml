@@ -22,6 +22,9 @@ spec:
           imagePullPolicy: Always
           command: ["./scheduler"]
           args: ["-config","kubernetes"]
+          volumeMounts:
+          - name: api-scheduler-config-volume
+            mountPath: /app/.env
           # resources:
           #   requests:
           #     memory: "64Mi"
@@ -30,9 +33,6 @@ spec:
           #     memory: "128Mi"
           #     cpu: "500m"
       volumes:
-        - name: api-scheduler-config-volume
-          configMap:
-            name: api-scheduler-config
-            items:
-              - key: kubernetes.yaml
-                path: .env/kubernetes.yaml
+      - name: api-scheduler-config-volume
+        configMap:
+          name: api-scheduler-config 
