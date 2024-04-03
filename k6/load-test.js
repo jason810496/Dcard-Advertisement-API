@@ -9,9 +9,9 @@ export const options = {
 			executor: 'constant-arrival-rate',
 			rate: 20000,
 			timeUnit: '1s',
-			duration: '30s',
-			preAllocatedVUs: 1000,
-			maxVUs: 4000,
+			duration: '5m',
+			preAllocatedVUs: 100,
+			maxVUs: 10000,
 		},
 	},
 };
@@ -78,5 +78,5 @@ export default function () {
 		}
 	);
 
-	sleep(1);
+	sleep(0.1);
 }
