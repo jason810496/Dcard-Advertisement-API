@@ -15,6 +15,7 @@ The assignment can be broadly defined as:  <br>
 - [Features : Optimize `Redis` with `Lua` script & config](#features--optimize-redis-with-lua-script--config)
 - [Features : High availability with Redis Sentinel](#features--high-availability-with-redis-sentinel)
 - [Features : Local Cache in Memory](#features--local-cache-in-memory)
+- [Benchmark: `k6-operator` CRD](#benchmark-k6-operator-crd)
 - [DevOps : CI/CD](#devops--cicd)
 - [Reference](#reference)
 
@@ -279,6 +280,20 @@ https://github.com/chenyahui/gin-cache
 
 這邊可以透過 Redis Sentinel ( 哨兵模式 ) 來達成 <br>
 並且可以將 Query 操作分散到多個 Redis instance 上 <br>
+
+## Benchmark: `k6-operator` CRD
+
+`k6-operator` 是一個可以在 k8s 上以 k6 做 load testing 的 CRD <br>
+- 提供 `parallelsim` 把 rate 平均分散給 N 個 k6 instance
+    - 可以降低單一個 k6 instance CPU 飆高的問題
+    - 在 k8s cluster 內執行 distributed load testing
+- 可以設定 prometheus 的 Remote Write Endpoint 來收集資料到 Grafana Cloud
+- 使用 configmap 來設定 k6 的 script
+
+
+> ![k6-k8s-kill-by-cpu]()
+> 在某些測試情況下，單一個 k6 instance 很容易會以指數上升用量去吃 CPU
+> 造成 resource limit 被 kill
 
 ## DevOps : CI/CD
 

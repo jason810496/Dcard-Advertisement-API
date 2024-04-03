@@ -41,7 +41,7 @@ spec:
               cpu: "50m"
             limits:
               memory: "512Mi"
-              cpu: "100m"
+              cpu: "500m"
           volumeMounts:
             - name: postgresql-pvc
               mountPath: /var/lib/postgresql/data
