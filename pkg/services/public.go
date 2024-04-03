@@ -11,7 +11,7 @@ import (
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/database"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/models"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/schemas"
-	"github.com/jason810496/Dcard-Advertisement-API/pkg/utils"
+	// "github.com/jason810496/Dcard-Advertisement-API/pkg/utils"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
@@ -73,7 +73,7 @@ func (srv *PublicService) GetAdFromRedis(req *schemas.PublicAdRequest, ads *[]mo
 
 	// redis check key exist
 	if rds.Exists(rds_ctx, key).Val() == 0 {
-		fmt.Println("key does not exist")
+		// fmt.Println("key does not exist")
 		return redis.Nil
 	}
 
@@ -85,7 +85,7 @@ func (srv *PublicService) GetAdFromRedis(req *schemas.PublicAdRequest, ads *[]mo
 		return err
 	}
 
-	utils.PrintJson(val)
+	// utils.PrintJson(val)
 
 	// bind to ads
 	*ads = make([]models.Advertisement, len(val))
@@ -101,7 +101,7 @@ func (srv *PublicService) GetAdFromRedis(req *schemas.PublicAdRequest, ads *[]mo
 func (srv *PublicService) GetAdFromDB(req *schemas.PublicAdRequest, ads *[]models.Advertisement) error {
 	// StartAt <= now <= EndAt
 	now := time.Now()
-	fmt.Println(now)
+	// fmt.Println(now)
 
 	tx := srv.db
 	tx = tx.Select("title", "end_at")
@@ -150,7 +150,7 @@ func (srv *PublicService) SetAdToRedis(req *schemas.PublicAdRequest, ads *[]mode
 			},
 		}).Result()
 		if err != nil {
-			fmt.Println("SetAdToRedis", err)
+			// fmt.Println("SetAdToRedis", err)
 			return err
 		}
 		// set expire
@@ -169,13 +169,13 @@ func (srv *PublicService) SetAdToRedis(req *schemas.PublicAdRequest, ads *[]mode
 	}
 	_, err := rds.Do(rds_ctx, cmd...).Result()
 	if err != nil {
-		fmt.Println("SetAdToRedis", err)
+		// fmt.Println("SetAdToRedis", err)
 		return err
 	}
 	// set expire
 	_, err = rds.Expire(rds_ctx, key, time.Minute*5).Result()
 	if err != nil {
-		fmt.Println("SetAdToRedis", err)
+		// fmt.Println("SetAdToRedis", err)
 		return err
 	}
 
@@ -195,7 +195,7 @@ func (srv *PublicService) SetHotSpotAdToRedis(req *schemas.PublicAdRequest, ads 
 
 	_, err := cache.UpdateCacheScript.Run(rds_ctx, rds, []string{key}, cmd).Result()
 	if err != nil {
-		fmt.Println("SetHotSpotAdToRedis", err)
+		// fmt.Println("SetHotSpotAdToRedis", err)
 		return err
 	}
 

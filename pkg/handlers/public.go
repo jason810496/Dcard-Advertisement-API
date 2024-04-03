@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"fmt"
+	// "fmt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/schemas"
@@ -32,7 +32,7 @@ func PublicAd(ctx *gin.Context) {
 		return
 	}
 
-	fmt.Printf("%#v\n", json)
+	// fmt.Printf("%#v\n", json)
 
 	srv := services.NewPublicService()
 

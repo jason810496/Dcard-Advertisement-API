@@ -8,6 +8,7 @@ import (
 
 func SetupRouter() *gin.Engine {
 	configModeToGinMode := map[string]string{
+		"kubernetes": gin.ReleaseMode,
 		"prod": gin.ReleaseMode,
 		"dev":  gin.DebugMode,
 		"test": gin.TestMode,

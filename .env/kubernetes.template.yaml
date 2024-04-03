@@ -2,7 +2,7 @@ app:
   desc: Adversement API
   version: v1.0.0
   address: 0.0.0.0:8080
-  env: dev
+  env: kubernetes
 database:
   kind: postgres
   host: database-service.default.svc.cluster.local
