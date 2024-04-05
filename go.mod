@@ -3,6 +3,7 @@ module github.com/jason810496/Dcard-Advertisement-API
 go 1.21.6
 
 require (
+	github.com/VictoriaMetrics/fastcache v1.12.2
 	github.com/appleboy/gofight/v2 v2.1.2
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-co-op/gocron/v2 v2.2.4
@@ -39,6 +40,7 @@ require (
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-sql-driver/mysql v1.7.1 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
+	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
