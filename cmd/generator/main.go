@@ -8,15 +8,18 @@ import (
 
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/config"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/database"
+	"github.com/jason810496/Dcard-Advertisement-API/pkg/models"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/schemas"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/services"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/utils"
 )
 
 var Amount int
+var ActiveAmount int
 
 func init() {
-	flag.IntVar(&Amount, "n", 100, "Amount of fake data")
+	flag.IntVar(&ActiveAmount, "active", 1000, "Amount of active advertisements")
+	flag.IntVar(&Amount, "n", 3000, "Amount of total advertisements")
 	flag.Usage = func() {
 		fmt.Println("Usage: go run main.go -n <amount> -config <config mode>")
 		flag.PrintDefaults()
@@ -24,19 +27,39 @@ func init() {
 }
 
 func main() {
+	/*
+	default:
+	- n: 3000
+		- active: 1000
+		- inactive: 2000
+	- config: local
+	- check:
+		- active:
+			SELECT COUNT(*) FROM advertisements WHERE start_at <= NOW() AND end_at >= NOW();
+		- inactive:
+			SELECT COUNT(*) FROM advertisements WHERE start_at > NOW() OR end_at < NOW();
+	*/
 	config.Init()
 	flag.Parse()
-
 	database.Init()
 	database.CheckConnection()
 	srv := services.NewAdminService()
+	// delte old data, migrate new table
+	tx := database.DB
+	tx = tx.Exec("DROP TABLE advertisements")
+	if tx.Error != nil {
+		fmt.Println(tx.Error)
+	}
+	database.DB.AutoMigrate(&models.Advertisement{})
 
 	rs := rand.NewSource(time.Now().UnixNano())
 	r := rand.New(rs)
-
 	// generate fake data
 	for i := 0; i < Amount; i++ {
 		req := randAd(r, i)
+		if i >= ActiveAmount{
+			req.EndAt = time.Now().Add(-time.Hour * 24 * 30)
+		}
 		err := srv.CreateAdvertisement(&req)
 		if err != nil {
 			fmt.Println(err)
