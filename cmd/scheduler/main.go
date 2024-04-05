@@ -14,7 +14,7 @@ import (
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/models"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/schemas"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/services"
-	"github.com/jason810496/Dcard-Advertisement-API/pkg/utils"
+	"github.com/jason810496/Dcard-Advertisement-API/test/scheduler"
 )
 
 func main() {
@@ -52,7 +52,7 @@ func main() {
 
 	// block until you are ready to shut down
 	select {
-		case <-ctx.Done():
+	case <-ctx.Done():
 	}
 
 	// when you're done, shut it down
@@ -65,69 +65,35 @@ func main() {
 	fmt.Println("scheduler is shut down")
 }
 
+func Init() {
+	config.Init()
+	database.Init()
+	cache.Init()
+	cache.RedisClientInstance.CheckConnection()
+}
+
 func renewCache() {
 	fmt.Println("start renew cache")
 	srv := services.NewPublicService()
 	schema := schemas.NewPublicAdRequest()
 	ads := []models.Advertisement{}
+
 	// loop through gender, country, platform, age
-	// gender
-	for _, g := range utils.GenderList {
-		// country
-		for _, c := range utils.CountryList {
-			// platform
-			for _, p := range utils.PlatformList {
-				// age
-				for a := 18; a <= 40; a++ {
-					schema.Gender = g
-					schema.Country = c
-					schema.Platform = p
-					schema.Age = &a
+	scheduler.GenerateHotData(&config.Settings.Schedule.Interval, func(g, c, p *string, a *int) {
+		fmt.Println(fmt.Sprintln("ad:%s:%s:%s:%d", g, c, p, a))
 
-					fmt.Println(fmt.Sprintln("ad:%s:%s:%s:%d", g, c, p, a))
-
-					err := srv.GetAdFromDB(&schema, &ads)
-					if err != nil {
-						fmt.Println("GetAdFromDB error")
-						fmt.Println(err)
-					}
-
-					err_rds := srv.SetHotSpotAdToRedis(&schema, &ads)
-					if err_rds != nil {
-						fmt.Println("SetHotSpotAdToRedis error")
-						fmt.Println(err_rds)
-					}
-
-					time.Sleep(time.Microsecond * 100)
-					// time.Sleep(time.Second * 1)
-				}
-			}
+		err := srv.GetAdFromDB(&schema, &ads)
+		if err != nil {
+			fmt.Println("GetAdFromDB error")
+			fmt.Println(err)
 		}
-	}
 
-	// test for once
-	// schema.Gender = "F"
-	// schema.Age = 18
-	// schema.Country = "TW"
-	// schema.Platform = "ios"
+		err_rds := srv.SetHotSpotAdToRedis(&schema, &ads)
+		if err_rds != nil {
+			fmt.Println("SetHotSpotAdToRedis error")
+			fmt.Println(err_rds)
+		}
+	})
 
-	// err := srv.GetAdFromDB(&schema, &ads)
-	// if err != nil {
-	// 	fmt.Println("GetAdFromDB error")
-	// 	fmt.Println(err)
-	// }
-
-	// err_rds := srv.SetHotSpotAdToRedis(&schema,&ads)
-	// if err_rds != nil {
-	// 	fmt.Println("SetHotSpotAdToRedis error")
-	// 	fmt.Println(err_rds)
-	// }
 	fmt.Println("finish renew cache")
-}
-
-func Init() {
-	config.Init()
-	database.Init()
-	cache.Init()
-	cache.Rds.CheckConnection()
 }
