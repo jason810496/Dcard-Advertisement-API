@@ -292,18 +292,18 @@ func TestPublicMultipleCondition(t *testing.T) {
 		},
 		{
 			map[string]string{
-				"age":      "0",
-				"offset":   "10",
-				"limit":    "1",
+				"age":    "0",
+				"offset": "10",
+				"limit":  "1",
 			},
 			http.StatusBadRequest,
 			`{"code":400,"errors":[{"field":"Age","message":"Should be greater than 1"}]}`,
 		},
 		{
 			map[string]string{
-				"age":      "50",
-				"offset":   "0",
-				"limit":    "0",
+				"age":    "50",
+				"offset": "0",
+				"limit":  "0",
 			},
 			http.StatusBadRequest,
 			`{"code":400,"errors":[{"field":"Limit","message":"Should be greater than 1"},{"field":"Offset","message":"Should be greater than 0"}]}`,

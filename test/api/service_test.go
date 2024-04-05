@@ -76,13 +76,13 @@ func TestServiceGetAdFromDB(t *testing.T) {
 }
 
 type ServiceSetAdFromRedisCase struct {
-	req *schemas.PublicAdRequest
-	got []models.Advertisement
-	want []models.Advertisement
+	req     *schemas.PublicAdRequest
+	got     []models.Advertisement
+	want    []models.Advertisement
 	wantErr error
 }
 
-func TestServiceSetAdFromRedis(t *testing.T){
+func TestServiceSetAdFromRedis(t *testing.T) {
 	SetupFunction(t, ClearDB, GenerateAds)
 	srv := services.NewPublicService()
 
@@ -92,50 +92,50 @@ func TestServiceSetAdFromRedis(t *testing.T){
 				Age:      &[]int{18}[0],
 				Country:  "TW",
 				Platform: "ios",
-				Offset:  0,
-				Limit:  100,
+				Offset:   0,
+				Limit:    100,
 			},
-			got: make([]models.Advertisement, 0),
-			want: make([]models.Advertisement, 0),
+			got:     make([]models.Advertisement, 0),
+			want:    make([]models.Advertisement, 0),
 			wantErr: nil,
 		},
 		{
 			req: &schemas.PublicAdRequest{
-				Age: &[]int{18}[0],
-				Offset:  0,
+				Age:    &[]int{18}[0],
+				Offset: 0,
 				Limit:  100,
 			},
-			got: make([]models.Advertisement, 0),
-			want: make([]models.Advertisement, 0),
+			got:     make([]models.Advertisement, 0),
+			want:    make([]models.Advertisement, 0),
 			wantErr: nil,
 		},
 		{
 			req: &schemas.PublicAdRequest{
 				Country: "TW",
 				Offset:  0,
-				Limit:  100,
+				Limit:   100,
 			},
-			got: make([]models.Advertisement, 0),
-			want: make([]models.Advertisement, 0),
-			wantErr: nil,
-		},
-		{
-			req:     &schemas.PublicAdRequest{
-				Offset:  0,
-				Limit:  100,
-			},
-			got: make([]models.Advertisement, 0),
-			want: make([]models.Advertisement, 0),
+			got:     make([]models.Advertisement, 0),
+			want:    make([]models.Advertisement, 0),
 			wantErr: nil,
 		},
 		{
 			req: &schemas.PublicAdRequest{
-				Age: &[]int{90}[0],
-				Offset:  0,
+				Offset: 0,
 				Limit:  100,
 			},
-			got: make([]models.Advertisement, 0),
-			want: make([]models.Advertisement, 0),
+			got:     make([]models.Advertisement, 0),
+			want:    make([]models.Advertisement, 0),
+			wantErr: nil,
+		},
+		{
+			req: &schemas.PublicAdRequest{
+				Age:    &[]int{90}[0],
+				Offset: 0,
+				Limit:  100,
+			},
+			got:     make([]models.Advertisement, 0),
+			want:    make([]models.Advertisement, 0),
 			wantErr: nil,
 		},
 	}
@@ -166,7 +166,7 @@ func TestServiceSetAdFromRedis(t *testing.T){
 
 			fmt.Println("got printJson")
 			utils.PrintJson(tt.got)
-			
+
 			wantJson, _ := json.Marshal(tt.want)
 			gotJson, _ := json.Marshal(tt.got)
 
@@ -182,7 +182,6 @@ func TestServiceSetAdFromRedis(t *testing.T){
 
 }
 
-
-func TestServiceGetAdFromRedis(t *testing.T){
+func TestServiceGetAdFromRedis(t *testing.T) {
 
 }

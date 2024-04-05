@@ -26,7 +26,7 @@ func init() {
 func main() {
 	config.Init()
 	flag.Parse()
-	
+
 	database.Init()
 	database.CheckConnection()
 	srv := services.NewAdminService()
