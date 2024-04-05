@@ -15,3 +15,16 @@ redis:
   port: 6379
   user: root
   password: your_redis_password
+  ttl: 10m #  time to live of non hot data
+scheduler:
+  firstInterval: 1ms # interval between set every element for the first time
+  interval: 500ms # 0.5s , interval between set every element except the first time
+  period: 20m # period of scheduler , trigger the scheduler every 5 minutes
+localCache:
+  maxSize: 33554432 # 32MB , max size of local cache
+  period: 1m # period for background goroutine to refresh local cache
+  interval: 50ms # interval between refresh local cache
+  ttl: 2m # time to live of local cache
+hotdata:
+  ageStart: 18
+  ageEnd: 35
