@@ -12,9 +12,9 @@ import (
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/config"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/database"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/models"
+	"github.com/jason810496/Dcard-Advertisement-API/pkg/scheduler"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/schemas"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/services"
-	"github.com/jason810496/Dcard-Advertisement-API/test/scheduler"
 )
 
 func main() {

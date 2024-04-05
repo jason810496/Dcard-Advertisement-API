@@ -5,7 +5,7 @@ import (
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/config"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/database"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/handlers"
-	"github.com/jason810496/Dcard-Advertisement-API/test/scheduler"
+	"github.com/jason810496/Dcard-Advertisement-API/pkg/scheduler"
 
 	"github.com/jason810496/Dcard-Advertisement-API/docs"
 	swaggerFiles "github.com/swaggo/files"
