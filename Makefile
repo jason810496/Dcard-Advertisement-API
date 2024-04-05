@@ -43,7 +43,7 @@ local-dev:
 	--build.exclude_dir "stateful_volumes,docs,assets,deployments,bin" \
 	--build.bin bin/api \
 	--build.args_bin "-config local"
-	--build.pre_cmd "make gen" 
+	--build.pre_cmd "make gen && make fmt" 
 
 .PHONY: local-db
 local-db:

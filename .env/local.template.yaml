@@ -23,7 +23,7 @@ scheduler:
 localCache:
   maxSize: 33554432 # 32MB , max size of local cache
   period: 1m # period for background goroutine to refresh local cache
-  interval: 50ms # interval between refresh local cache
+  interval: 100ms # interval between refresh local cache
   ttl: 2m # time to live of local cache
 hotdata:
   ageStart: 18
