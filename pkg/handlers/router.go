@@ -12,7 +12,7 @@ func SetupRouter() *gin.Engine {
 		"dev":  gin.DebugMode,
 		"test": gin.TestMode,
 	}
-	gin.SetMode(configModeToGinMode[config.APP_MODE])
+	gin.SetMode(configModeToGinMode[config.Settings.App.Env])
 
 	router := gin.Default()
 	router.Use(middleware.CORSMiddleware())
