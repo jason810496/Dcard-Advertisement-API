@@ -82,6 +82,7 @@ type ServiceSetAdFromRedisCase struct {
 }
 
 func TestServiceSetAdAndGetAdFromRedis(t *testing.T) {
+	// ClearRedis in every test case setup
 	SetupFunction(t, ClearDB, GenerateAds)
 	srv := services.NewPublicService()
 
@@ -156,6 +157,100 @@ func TestServiceSetAdAndGetAdFromRedis(t *testing.T) {
 
 			time.Sleep(100 * time.Millisecond)
 			err, found := srv.GetAdFromRedis(tt.req, &tt.got)
+			if err != nil {
+				fmt.Println("got err")
+				utils.PrintJson(err)
+				tt.wantErr = err
+			}
+			if !found {
+				fmt.Println("not found")
+			}
+
+			assert.Equal(t, tt.wantErr, err)
+			assert.Equal(t, len(tt.want), len(tt.got))
+
+			// compare in raw json string
+			wantJson, _ := json.Marshal(tt.want)
+			gotJson, _ := json.Marshal(tt.got)
+			assert.Equal(t, string(wantJson), string(gotJson))
+		})
+	}
+}
+
+func TestServiceSetAdAndGetAdFromLocalCache(t *testing.T) {
+	SetupFunction(t, ClearDB, GenerateAds)
+	srv := services.NewPublicService()
+
+	tests := []ServiceSetAdFromRedisCase{
+		{
+			req: &schemas.PublicAdRequest{
+				Age:      &[]int{18}[0],
+				Country:  "TW",
+				Platform: "ios",
+				Offset:   0,
+				Limit:    100,
+			},
+			got:     make([]models.Advertisement, 0),
+			want:    make([]models.Advertisement, 0),
+			wantErr: nil,
+		},
+		{
+			req: &schemas.PublicAdRequest{
+				Age:    &[]int{18}[0],
+				Offset: 0,
+				Limit:  100,
+			},
+			got:     make([]models.Advertisement, 0),
+			want:    make([]models.Advertisement, 0),
+			wantErr: nil,
+		},
+		{
+			req: &schemas.PublicAdRequest{
+				Country: "TW",
+				Offset:  0,
+				Limit:   100,
+			},
+			got:     make([]models.Advertisement, 0),
+			want:    make([]models.Advertisement, 0),
+			wantErr: nil,
+		},
+		{
+			req: &schemas.PublicAdRequest{
+				Offset: 0,
+				Limit:  100,
+			},
+			got:     make([]models.Advertisement, 0),
+			want:    make([]models.Advertisement, 0),
+			wantErr: nil,
+		},
+		{
+			req: &schemas.PublicAdRequest{
+				Age:    &[]int{90}[0],
+				Offset: 0,
+				Limit:  100,
+			},
+			got:     make([]models.Advertisement, 0),
+			want:    make([]models.Advertisement, 0),
+			wantErr: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(cache.PublicAdKey(tt.req), func(t *testing.T) {
+			err := srv.GetAdFromDB(tt.req, &tt.want)
+			if err != nil {
+				fmt.Println("GetAdFromDB got err")
+				utils.PrintJson(err)
+			}
+			err = srv.SetAdToLocal(tt.req, &tt.want)
+			if err != nil {
+				fmt.Println("SetAdToLocal got err")
+				utils.PrintJson(err)
+			}
+			defer TeardownFunction(t)
+
+			time.Sleep(10 * time.Millisecond)
+			err, found := srv.GetAdFromLocal(tt.req, &tt.got)
 			if err != nil {
 				fmt.Println("got err")
 				utils.PrintJson(err)
