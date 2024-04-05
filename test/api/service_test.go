@@ -4,8 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"testing"
-
-	// "time"
+	"time"
 
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/cache"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/models"
@@ -82,7 +81,7 @@ type ServiceSetAdFromRedisCase struct {
 	wantErr error
 }
 
-func TestServiceSetAdFromRedis(t *testing.T) {
+func TestServiceSetAdAndGetAdFromRedis(t *testing.T) {
 	SetupFunction(t, ClearDB, GenerateAds)
 	srv := services.NewPublicService()
 
@@ -142,7 +141,7 @@ func TestServiceSetAdFromRedis(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(cache.PublicAdKey(tt.req), func(t *testing.T) {
-			SetupFunction(t)
+			SetupFunction(t, ClearRedis)
 			err := srv.GetAdFromDB(tt.req, &tt.want)
 			if err != nil {
 				fmt.Println("GetAdFromDB got err")
@@ -155,33 +154,24 @@ func TestServiceSetAdFromRedis(t *testing.T) {
 			}
 			defer TeardownFunction(t)
 
-			err = srv.GetAdFromRedis(tt.req, &tt.want)
+			time.Sleep(100 * time.Millisecond)
+			err, found := srv.GetAdFromRedis(tt.req, &tt.got)
 			if err != nil {
 				fmt.Println("got err")
 				utils.PrintJson(err)
 				tt.wantErr = err
 			}
-			fmt.Println("want printJson")
-			utils.PrintJson(tt.want)
-
-			fmt.Println("got printJson")
-			utils.PrintJson(tt.got)
-
-			wantJson, _ := json.Marshal(tt.want)
-			gotJson, _ := json.Marshal(tt.got)
-
-			fmt.Println(("got:"))
-			fmt.Println(string(gotJson))
-			fmt.Println(("want:"))
-			fmt.Println(string(wantJson))
+			if !found {
+				fmt.Println("not found")
+			}
 
 			assert.Equal(t, tt.wantErr, err)
-			// assert.Equal(t, string(wantJson), string(gotJson))
+			assert.Equal(t, len(tt.want), len(tt.got))
+
+			// compare in raw json string
+			wantJson, _ := json.Marshal(tt.want)
+			gotJson, _ := json.Marshal(tt.got)
+			assert.Equal(t, string(wantJson), string(gotJson))
 		})
 	}
-
-}
-
-func TestServiceGetAdFromRedis(t *testing.T) {
-
 }
