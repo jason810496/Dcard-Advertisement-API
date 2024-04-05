@@ -22,7 +22,7 @@ func SetupPackage() {
 	database.Init()
 	database.CheckConnection()
 	cache.Init()
-	cache.Rds.CheckConnection()
+	cache.RedisClientInstance.CheckConnection()
 
 	fmt.Printf("\033[1;33m%s\033[0m", "> Package Setup completed\n")
 }
@@ -64,7 +64,7 @@ func ClearDB() {
 }
 
 func ClearRedis() {
-	cache := cache.Rds
+	cache := cache.RedisClientInstance
 	rds := cache.Client
 	rds_ctx := cache.Context
 	rds.FlushAll(rds_ctx)
