@@ -42,7 +42,7 @@ func main() {
 	// renew localCache goroutine
 	go func() {
 		for {
-			scheduler.RefreshLocalCache(cache.LocalCacheInstance,config.Settings.LocalCache.Interval)
+			scheduler.RefreshLocalCache(cache.LocalCacheInstance, config.Settings.LocalCache.Interval)
 			time.Sleep(config.Settings.LocalCache.Period)
 		}
 	}()

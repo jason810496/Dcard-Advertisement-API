@@ -13,14 +13,14 @@ import (
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/utils"
 )
 
-func RefreshLocalCache(lc *fastcache.Cache, intervalArg ...time.Duration){
+func RefreshLocalCache(lc *fastcache.Cache, intervalArg ...time.Duration) {
 	fmt.Println("Start Refresh local cache")
 	// Preheat cache
 	srv := services.GetPublicService()
 	req := schemas.NewPublicAdRequest()
 	interval := time.Millisecond
 	// use custom interval if pass args
-	if len(intervalArg) > 0{
+	if len(intervalArg) > 0 {
 		interval = intervalArg[0]
 	}
 	GenerateHotData(&interval, func(g *string, c *string, p *string, a *int) {
