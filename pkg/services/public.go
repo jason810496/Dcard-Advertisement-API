@@ -7,11 +7,12 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/VictoriaMetrics/fastcache"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/cache"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/database"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/models"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/schemas"
-	"github.com/jason810496/Dcard-Advertisement-API/pkg/utils"
+	// "github.com/jason810496/Dcard-Advertisement-API/pkg/utils"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
@@ -19,23 +20,40 @@ import (
 
 type PublicService struct {
 	db  *gorm.DB
+	lc  *fastcache.Cache
 	rds *cache.RedisClient
 }
 type DBClient gorm.DB
 type RedisClient cache.RedisClient
 
+var PublicServiceInstance *PublicService
+
+func GetPublicService() *PublicService {
+	if PublicServiceInstance == nil {
+		PublicServiceInstance = NewPublicService()
+	}
+	return PublicServiceInstance
+}
+
 func NewPublicService() *PublicService {
-	return &PublicService{db: database.DB, rds: cache.Rds}
+	return &PublicService{db: database.DB, rds: cache.RedisClientInstance, lc: cache.LocalCacheInstance}
 }
 
 // []models.Advertisement, error
 func (srv *PublicService) GetAdvertisements(req *schemas.PublicAdRequest) (any, error) {
 	var ads []models.Advertisement
-	// get from redis
-	err := srv.GetAdFromRedis(req, &ads)
+	// get from local
+	err := srv.GetAdFromLocal(req, &ads)
 	if err == nil {
 		return ads, nil
 	}
+
+	// get from redis
+	err = srv.GetAdFromRedis(req, &ads)
+	if err == nil {
+		return ads, nil
+	}
+	go srv.SetAdToRedis(req, &ads)
 
 	err = srv.GetAdFromDB(req, &ads)
 	if err != nil {
@@ -45,6 +63,7 @@ func (srv *PublicService) GetAdvertisements(req *schemas.PublicAdRequest) (any, 
 	// TTL: 5 minutes
 	// store full result to redis in goroutine
 	go srv.SetAdToRedis(req, &ads)
+	go srv.SetAdToLocal(req, &ads)
 
 	// if ads is empty, return [] instead of nil
 	if len(ads) == 0 {
@@ -66,6 +85,20 @@ func (srv *PublicService) GetAdvertisements(req *schemas.PublicAdRequest) (any, 
 	return ads[req.Offset : req.Offset+req.Limit], nil
 }
 
+func (srv *PublicService) GetAdFromLocal(req *schemas.PublicAdRequest, ads *[]models.Advertisement) error {
+	key := cache.PublicAdKey(req)
+	val := srv.lc.Get(nil, []byte(key))
+	if val == nil {
+		ads = nil
+		return nil
+	}
+
+	if err := json.Unmarshal(val, ads); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (srv *PublicService) GetAdFromRedis(req *schemas.PublicAdRequest, ads *[]models.Advertisement) error {
 	key := cache.PublicAdKey(req)
 	rds := srv.rds.Client
@@ -85,7 +118,7 @@ func (srv *PublicService) GetAdFromRedis(req *schemas.PublicAdRequest, ads *[]mo
 		return err
 	}
 
-	utils.PrintJson(val)
+	// utils.PrintJson(val)
 
 	// bind to ads
 	*ads = make([]models.Advertisement, len(val))
@@ -101,7 +134,7 @@ func (srv *PublicService) GetAdFromRedis(req *schemas.PublicAdRequest, ads *[]mo
 func (srv *PublicService) GetAdFromDB(req *schemas.PublicAdRequest, ads *[]models.Advertisement) error {
 	// StartAt <= now <= EndAt
 	now := time.Now()
-	fmt.Println(now)
+	// fmt.Println(now)
 
 	tx := srv.db
 	tx = tx.Select("title", "end_at")
@@ -133,6 +166,17 @@ func (srv *PublicService) GetAdFromDB(req *schemas.PublicAdRequest, ads *[]model
 		return err
 	}
 
+	return nil
+}
+
+func (srv *PublicService) SetAdToLocal(req *schemas.PublicAdRequest, ads *[]models.Advertisement) error {
+	key := cache.PublicAdKey(req)
+	value, err := json.Marshal(ads)
+	if err != nil {
+		return err
+	}
+
+	srv.lc.Set([]byte(key), value)
 	return nil
 }
 
