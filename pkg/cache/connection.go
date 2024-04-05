@@ -14,7 +14,7 @@ type RedisClient struct {
 	Context context.Context
 }
 
-var Rds *RedisClient
+var RedisClientInstance *RedisClient
 
 func Init() {
 	rdb := redis.NewClient(&redis.Options{
@@ -24,7 +24,7 @@ func Init() {
 		PoolTimeout: 5 * time.Second,
 	})
 
-	Rds = &RedisClient{
+	RedisClientInstance = &RedisClient{
 		Client:  rdb,
 		Context: context.Background(),
 	}
@@ -54,5 +54,5 @@ func (r *RedisClient) CheckConnection() {
 }
 
 func CloseConnection() {
-	Rds.Client.Close()
+	RedisClientInstance.Client.Close()
 }

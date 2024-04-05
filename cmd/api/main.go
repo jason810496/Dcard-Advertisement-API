@@ -5,6 +5,7 @@ import (
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/config"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/database"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/handlers"
+	"github.com/jason810496/Dcard-Advertisement-API/test/scheduler"
 
 	"github.com/jason810496/Dcard-Advertisement-API/docs"
 	swaggerFiles "github.com/swaggo/files"
@@ -15,7 +16,9 @@ func main() {
 	config.Init()
 	database.Init()
 	cache.Init()
-	cache.Rds.CheckConnection()
+	cache.RedisClientInstance.CheckConnection()
+	cache.LocalCacheInit()
+	scheduler.PreHeatLocalCache(cache.LocalCacheInstance)
 
 	router := handlers.SetupRouter()
 	docs.SwaggerInfo.Title = "Dcard Advertisement API"

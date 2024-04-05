@@ -34,7 +34,7 @@ func PublicAd(ctx *gin.Context) {
 
 	fmt.Printf("%#v\n", json)
 
-	srv := services.NewPublicService()
+	srv := services.GetPublicService()
 
 	res, err := srv.GetAdvertisements(&json)
 	if err != nil {
