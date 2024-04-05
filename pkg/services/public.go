@@ -12,6 +12,8 @@ import (
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/database"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/models"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/schemas"
+	"github.com/jason810496/Dcard-Advertisement-API/pkg/utils"
+
 	// "github.com/jason810496/Dcard-Advertisement-API/pkg/utils"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/datatypes"
@@ -43,17 +45,18 @@ func NewPublicService() *PublicService {
 func (srv *PublicService) GetAdvertisements(req *schemas.PublicAdRequest) (any, error) {
 	var ads []models.Advertisement
 	// get from local
-	err := srv.GetAdFromLocal(req, &ads)
-	if err == nil {
+	err, found := srv.GetAdFromLocal(req, &ads)
+	if err == nil && found {
 		return ads, nil
 	}
 
 	// get from redis
-	err = srv.GetAdFromRedis(req, &ads)
-	if err == nil {
+	err, found = srv.GetAdFromRedis(req, &ads)
+	if err == nil && found {
 		return ads, nil
 	}
 	go srv.SetAdToRedis(req, &ads)
+	go srv.SetAdToLocal(req, &ads)
 
 	err = srv.GetAdFromDB(req, &ads)
 	if err != nil {
@@ -85,21 +88,20 @@ func (srv *PublicService) GetAdvertisements(req *schemas.PublicAdRequest) (any, 
 	return ads[req.Offset : req.Offset+req.Limit], nil
 }
 
-func (srv *PublicService) GetAdFromLocal(req *schemas.PublicAdRequest, ads *[]models.Advertisement) error {
+func (srv *PublicService) GetAdFromLocal(req *schemas.PublicAdRequest, ads *[]models.Advertisement) (error, bool) {
 	key := cache.PublicAdKey(req)
 	val := srv.lc.Get(nil, []byte(key))
 	if val == nil {
-		ads = nil
-		return nil
+		return nil, false
 	}
 
 	if err := json.Unmarshal(val, ads); err != nil {
-		return err
+		return err, true
 	}
-	return nil
+	return nil, true
 }
 
-func (srv *PublicService) GetAdFromRedis(req *schemas.PublicAdRequest, ads *[]models.Advertisement) error {
+func (srv *PublicService) GetAdFromRedis(req *schemas.PublicAdRequest, ads *[]models.Advertisement) (error, bool) {
 	key := cache.PublicAdKey(req)
 	rds := srv.rds.Client
 	rds_ctx := srv.rds.Context
@@ -107,7 +109,7 @@ func (srv *PublicService) GetAdFromRedis(req *schemas.PublicAdRequest, ads *[]mo
 	// redis check key exist
 	if rds.Exists(rds_ctx, key).Val() == 0 {
 		fmt.Println("key does not exist")
-		return redis.Nil
+		return redis.Nil, false
 	}
 
 	val, err := rds.ZRangeByScore(rds_ctx, key, &redis.ZRangeBy{
@@ -115,10 +117,8 @@ func (srv *PublicService) GetAdFromRedis(req *schemas.PublicAdRequest, ads *[]mo
 		Max: strconv.Itoa(req.Offset + req.Limit),
 	}).Result()
 	if err != nil {
-		return err
+		return err, true
 	}
-
-	// utils.PrintJson(val)
 
 	// bind to ads
 	*ads = make([]models.Advertisement, len(val))
@@ -128,7 +128,7 @@ func (srv *PublicService) GetAdFromRedis(req *schemas.PublicAdRequest, ads *[]mo
 			continue
 		}
 	}
-	return nil
+	return nil, true
 }
 
 func (srv *PublicService) GetAdFromDB(req *schemas.PublicAdRequest, ads *[]models.Advertisement) error {
@@ -209,7 +209,7 @@ func (srv *PublicService) SetAdToRedis(req *schemas.PublicAdRequest, ads *[]mode
 	cmd = append(cmd, "ZADD", key)
 	for idx, ad := range *ads {
 		cmd = append(cmd, float64(idx+1))
-		cmd = append(cmd, fmt.Sprintf("{\"title\":\"%s\",\"endAt\":\"%s\"}", ad.Title, ad.EndAt.Format(time.RFC3339)))
+		cmd = append(cmd, fmt.Sprintf("{\"title\":\"%s\",\"endAt\":\"%s\"}", ad.Title, ad.EndAt.Format(utils.RFC3339Custom)))
 	}
 	_, err := rds.Do(rds_ctx, cmd...).Result()
 	if err != nil {
