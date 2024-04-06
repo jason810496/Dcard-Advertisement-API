@@ -33,3 +33,5 @@ redis.env
 db.env
 k6-grafana-cloud-prometheus.env
 k6-grafana-cloud-secret.env
+
+bin/*
