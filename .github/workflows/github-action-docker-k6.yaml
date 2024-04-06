@@ -12,7 +12,7 @@ on:
 
 jobs:
   docker:
-    timeout-minutes: 10
+    timeout-minutes: 20
     runs-on: ubuntu-latest
 
     steps:
@@ -48,7 +48,7 @@ jobs:
       run: docker compose -f "docker-compose-benchmark.yaml" ps -a
 
     - name: Generate data
-      run: docker compose -f "docker-compose-benchmark.yaml" run -v $PWD/.env:/app/.env --rm generator
+      run: docker compose -f "docker-compose-benchmark.yaml" run -v $PWD/.env:/app/.env --rm -d generator
 
     - name: Start Scheduler
       run: |
@@ -57,7 +57,12 @@ jobs:
 
 
     - name: Start API
-      run: docker compose -f "docker-compose-benchmark.yaml" run -v $PWD/.env:/app/.env -d api
+      run: |
+        docker compose -f "docker-compose-benchmark.yaml" run -v $PWD/.env:/app/.env -d api
+        sleep 10
+
+    - name: Check API logs
+      run: docker compose -f "docker-compose-benchmark.yaml" logs api
 
     - name: Run k6 load test
       run: docker compose run -v $PWD/k6/:/k6 k6 run /k6/load-test.js
