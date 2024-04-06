@@ -6,9 +6,9 @@ on:
     # pull_request:
     #     branches: [main, release/*]
     push:
-        branches: [build]
+        branches: [build/k6]
     pull_request:
-        branches: [build]
+        branches: [build/k6]
 env:
     IMAGE_NAME: dcard-advertisement-api-k6-starter
     DOCKERFILE_PATH: ./deployments/dev/k6/Dockerfile.starter
