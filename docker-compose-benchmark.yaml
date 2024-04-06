@@ -43,7 +43,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    command: ["./generator","-config","dev"]
+    command: ["./generator","-config","test"]
 
   scheduler:
     build: 
@@ -57,7 +57,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    command: ["./scheduler","-config","dev"]
+    command: ["./scheduler","-config","test"]
 
   api:
     build: 
@@ -75,7 +75,7 @@ services:
         condition: service_healthy
       scheduler:
         condition: service_started
-    command: ["./api","-config","dev"]
+    command: ["./api","-config","test"]
 
   k6:
     image: grafana/k6

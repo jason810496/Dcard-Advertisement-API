@@ -1,0 +1,47 @@
+name: Run k6 load test on GitHub Actions with Docker Compose
+
+on:
+  push:
+    branches:
+    - benchmark/**
+  pull_request:
+    branches:
+    - benchmark/**
+
+jobs:
+  docker:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Config file and Environment Variables
+      run: |
+        cp .env/test.template.yaml .env/test.yaml
+        cp .env/dev/db.template.env .env/dev/db.env
+        cp .env/dev/redis.template.env .env/dev/redis.env
+        cp .env/dev/k6.template.env .env/dev/k6.env
+
+    - name: Start DB,redis
+      run: docker compose -f "docker-compose-benchmark.yaml" up db redis -d
+
+    - name: Generate data
+      run: docker compose run generator
+
+    - name: Start Scheduler
+      run: |
+        docker compose -f "docker-compose-benchmark.yaml" up scheduler -d 
+        sleep 2
+
+
+    - name: Start API
+      run: docker compose -f "docker-compose-benchmark.yaml" up api -d
+
+    - name: Run k6 load test
+      run: docker compose run -v $PWD/k6/:/k6 k6 run /k6/load-test.js
+
+    - name: Stop containers
+      if: always()
+      run: docker compose -f "docker-compose-benchmark.yaml" down
