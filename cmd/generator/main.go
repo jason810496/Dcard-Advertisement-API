@@ -28,16 +28,16 @@ func init() {
 
 func main() {
 	/*
-	default:
-	- n: 3000
-		- active: 1000
-		- inactive: 2000
-	- config: local
-	- check:
-		- active:
-			SELECT COUNT(*) FROM advertisements WHERE start_at <= NOW() AND end_at >= NOW();
-		- inactive:
-			SELECT COUNT(*) FROM advertisements WHERE start_at > NOW() OR end_at < NOW();
+		default:
+		- n: 3000
+			- active: 1000
+			- inactive: 2000
+		- config: local
+		- check:
+			- active:
+				SELECT COUNT(*) FROM advertisements WHERE start_at <= NOW() AND end_at >= NOW();
+			- inactive:
+				SELECT COUNT(*) FROM advertisements WHERE start_at > NOW() OR end_at < NOW();
 	*/
 	config.Init()
 	flag.Parse()
@@ -57,7 +57,7 @@ func main() {
 	// generate fake data
 	for i := 0; i < Amount; i++ {
 		req := randAd(r, i)
-		if i >= ActiveAmount{
+		if i >= ActiveAmount {
 			req.EndAt = time.Now().Add(-time.Hour * 24 * 30)
 		}
 		err := srv.CreateAdvertisement(&req)
