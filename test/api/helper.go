@@ -23,6 +23,7 @@ func SetupPackage() {
 	database.CheckConnection()
 	cache.Init()
 	cache.RedisClientInstance.CheckConnection()
+	cache.LocalCacheInit()
 
 	fmt.Printf("\033[1;33m%s\033[0m", "> Package Setup completed\n")
 }
@@ -68,6 +69,10 @@ func ClearRedis() {
 	rds := cache.Client
 	rds_ctx := cache.Context
 	rds.FlushAll(rds_ctx)
+}
+
+func ClearLocalCache() {
+	cache.LocalCacheInstance.Reset()
 }
 
 func GenerateAds() {

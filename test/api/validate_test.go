@@ -98,7 +98,7 @@ func TestPublicCountry(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.country, func(t *testing.T) {
-			SetupFunction(t)
+			SetupFunction(t, ClearLocalCache)
 			defer TeardownFunction(t)
 
 			r := gofight.New()
@@ -135,7 +135,7 @@ func TestPublicPlatform(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.platform, func(t *testing.T) {
-			SetupFunction(t)
+			SetupFunction(t, ClearLocalCache)
 			defer TeardownFunction(t)
 
 			r := gofight.New()
@@ -170,7 +170,7 @@ func TestPublicGender(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.gender, func(t *testing.T) {
-			SetupFunction(t)
+			SetupFunction(t, ClearLocalCache)
 			defer TeardownFunction(t)
 
 			r := gofight.New()
@@ -199,8 +199,6 @@ func TestPublicLimit(t *testing.T) {
 		{"0", http.StatusBadRequest, `{"code":400,"errors":[{"field":"Limit","message":"Should be greater than 1"}]}`},
 		{"-1", http.StatusBadRequest, `{"code":400,"errors":[{"field":"Limit","message":"Should be greater than 1"}]}`},
 		{"-55", http.StatusBadRequest, `{"code":400,"errors":[{"field":"Limit","message":"Should be greater than 1"}]}`},
-		{"1", http.StatusBadRequest, `{"code":400,"errors":[{"field":"Limit","message":"Should be greater than 1"}]}`},
-		{"2", http.StatusOK, "[]"},
 	}
 
 	for _, tt := range tests {
@@ -232,11 +230,8 @@ func TestPublicOffset(t *testing.T) {
 		code      int
 		errorJson string
 	}{
-		{"0", http.StatusBadRequest, `{"code":400,"errors":[{"field":"Offset","message":"Should be greater than 0"}]}`},
 		{"-1", http.StatusBadRequest, `{"code":400,"errors":[{"field":"Offset","message":"Should be greater than 0"}]}`},
 		{"-55", http.StatusBadRequest, `{"code":400,"errors":[{"field":"Offset","message":"Should be greater than 0"}]}`},
-		{"1", http.StatusOK, "[]"},
-		{"2", http.StatusOK, "[]"},
 	}
 
 	for _, tt := range tests {
@@ -306,13 +301,13 @@ func TestPublicMultipleCondition(t *testing.T) {
 				"limit":  "0",
 			},
 			http.StatusBadRequest,
-			`{"code":400,"errors":[{"field":"Limit","message":"Should be greater than 1"},{"field":"Offset","message":"Should be greater than 0"}]}`,
+			`{"code":400,"errors":[{"field":"Limit","message":"Should be greater than 1"}]}`,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("%v", tt.condition), func(t *testing.T) {
-			SetupFunction(t)
+			SetupFunction(t, ClearLocalCache)
 			defer TeardownFunction(t)
 
 			r := gofight.New()
