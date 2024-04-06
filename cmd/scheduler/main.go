@@ -80,7 +80,11 @@ func renewCache() {
 
 	// loop through gender, country, platform, age
 	scheduler.GenerateHotData(&config.Settings.Schedule.Interval, func(g, c, p *string, a *int) {
-		fmt.Println(fmt.Sprintln("ad:%s:%s:%s:%d", g, c, p, a))
+		fmt.Println(fmt.Sprintln("ad:%s:%s:%s:%d", *g, *c, *p, *a))
+		schema.Age = a
+		schema.Country = *c
+		schema.Gender = *g
+		schema.Platform = *p
 
 		err := srv.GetAdFromDB(&schema, &ads)
 		if err != nil {
