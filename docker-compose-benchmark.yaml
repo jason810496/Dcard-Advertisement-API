@@ -36,8 +36,8 @@ services:
       context: .
       dockerfile: ./deployments/dev/generator/Dockerfile
     restart: always
-    volumes:
-      - .env:/app/.env
+    # volumes:
+    #   - .env:/app/.env
     depends_on:
       db:
         condition: service_healthy
@@ -50,8 +50,8 @@ services:
       context: .
       dockerfile: ./deployments/dev/scheduler/Dockerfile
     restart: always
-    volumes:
-      - .env:/app/.env
+    # volumes:
+    #   - .env:/app/.env
     depends_on:
       db:
         condition: service_healthy
@@ -66,15 +66,13 @@ services:
     ports:
       - 8080:8080
     restart: always
-    volumes:
-      - .env:/app/.env
+    # volumes:
+    #   - .env:/app/.env
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
-      scheduler:
-        condition: service_started
     command: ["./api","-config","test"]
 
   k6:
@@ -84,8 +82,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      scheduler:
-        condition: service_started
       api:
         condition: service_started
     env_file:

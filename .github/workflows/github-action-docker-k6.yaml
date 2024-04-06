@@ -41,22 +41,23 @@ jobs:
         docker compose -f "docker-compose-benchmark.yaml" up db redis -d
         sudo chmod 777 -R ./stateful_volumes
         sleep 3
+        docker compose -f "docker-compose-benchmark.yaml" logs db
         docker compose -f "docker-compose-benchmark.yaml" logs redis
 
     - name: check Docker
       run: docker compose -f "docker-compose-benchmark.yaml" ps -a
 
     - name: Generate data
-      run: docker compose run generator
+      run: docker compose -f "docker-compose-benchmark.yaml" run -v $PWD/.env:/app/.env --rm generator
 
     - name: Start Scheduler
       run: |
-        docker compose -f "docker-compose-benchmark.yaml" up scheduler -d 
+        docker compose -f "docker-compose-benchmark.yaml" run -v $PWD/.env:/app/.env -d scheduler
         sleep 2
 
 
     - name: Start API
-      run: docker compose -f "docker-compose-benchmark.yaml" up api -d
+      run: docker compose -f "docker-compose-benchmark.yaml" run -v $PWD/.env:/app/.env -d api
 
     - name: Run k6 load test
       run: docker compose run -v $PWD/k6/:/k6 k6 run /k6/load-test.js
