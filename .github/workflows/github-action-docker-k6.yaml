@@ -4,9 +4,11 @@ on:
   push:
     branches:
     - benchmark/**
+    - release/v2
   pull_request:
     branches:
     - benchmark/**
+    - release/v2
 
 jobs:
   docker:
