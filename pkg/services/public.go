@@ -47,12 +47,13 @@ func (srv *PublicService) GetAdvertisements(req *schemas.PublicAdRequest) (any, 
 	// get from local
 	err, found := srv.GetAdFromLocal(req, &ads)
 	if err == nil && found {
-		return ads, nil
+		return paginateAds(req, &ads), nil
 	}
 
 	// get from redis
 	err, found = srv.GetAdFromRedis(req, &ads)
 	if err == nil && found {
+		// alredy use redis ZSET for pagination
 		return ads, nil
 	}
 	go srv.SetAdToRedis(req, &ads)
@@ -74,18 +75,22 @@ func (srv *PublicService) GetAdvertisements(req *schemas.PublicAdRequest) (any, 
 		return ads, nil
 	}
 
-	result_len := len(ads)
+	return paginateAds(req, &ads), nil
+}
+
+func paginateAds(req *schemas.PublicAdRequest, ads *[]models.Advertisement) any {
+	result_len := len(*ads)
 	// case: offset >= result_len
-	if req.Offset >= result_len {
-		return nil, nil
+	if req.Offset != nil && *req.Offset >= result_len {
+		return nil
 	}
 	// case: offset+limit > result_len
-	if req.Offset+req.Limit > result_len {
-		return ads[req.Offset:], nil
+	if *req.Offset+*req.Limit > result_len {
+		return (*ads)[*req.Offset:]
 	}
 
 	// set offset and limit for sql result
-	return ads[req.Offset : req.Offset+req.Limit], nil
+	return (*ads)[*req.Offset : *req.Offset+*req.Limit]
 }
 
 func (srv *PublicService) GetAdFromLocal(req *schemas.PublicAdRequest, ads *[]models.Advertisement) (error, bool) {
@@ -94,7 +99,6 @@ func (srv *PublicService) GetAdFromLocal(req *schemas.PublicAdRequest, ads *[]mo
 	if val == nil {
 		return nil, false
 	}
-
 	if err := json.Unmarshal(val, ads); err != nil {
 		return err, true
 	}
@@ -113,8 +117,8 @@ func (srv *PublicService) GetAdFromRedis(req *schemas.PublicAdRequest, ads *[]mo
 	}
 
 	val, err := rds.ZRangeByScore(rds_ctx, key, &redis.ZRangeBy{
-		Min: strconv.Itoa(req.Offset + 1),
-		Max: strconv.Itoa(req.Offset + req.Limit),
+		Min: strconv.Itoa(*req.Offset + 1),
+		Max: strconv.Itoa(*req.Offset + *req.Limit),
 	}).Result()
 	if err != nil {
 		return err, true
