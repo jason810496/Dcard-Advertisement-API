@@ -39,7 +39,8 @@ jobs:
     - name: Start DB,redis
       run: |
         docker compose -f "docker-compose-benchmark.yaml" up db redis -d
-        sleep 10
+        sudo chmod 777 -R ./stateful_volumes
+        sleep 3
         docker compose -f "docker-compose-benchmark.yaml" logs redis
 
     - name: check Docker
