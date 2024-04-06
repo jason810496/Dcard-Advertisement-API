@@ -24,8 +24,18 @@ jobs:
         cp .env/dev/redis.template.env .env/dev/redis.env
         cp .env/dev/k6.template.env .env/dev/k6.env
 
+    - name: Check Config 
+      run: |
+        ls -l .env
+        ls -l .env/dev
+
     - name: Start DB,redis
-      run: docker compose -f "docker-compose-benchmark.yaml" up db redis -d
+      run: |
+        docker compose -f "docker-compose-benchmark.yaml" up db redis -d
+        sleep 10
+
+    - name: check Docker
+      run: docker compose -f "docker-compose-benchmark.yaml" ps -a
 
     - name: Generate data
       run: docker compose run generator
