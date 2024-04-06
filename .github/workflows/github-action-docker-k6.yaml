@@ -61,7 +61,9 @@ jobs:
         sleep 10
 
     - name: Check API logs
-      run: docker compose -f "docker-compose-benchmark.yaml" logs api
+      run: |
+        docker compose -f "docker-compose-benchmark.yaml" ps
+        docker compose -f "docker-compose-benchmark.yaml" logs api
 
     - name: Download k6 
       run: |
@@ -74,7 +76,7 @@ jobs:
 
     - name: Run k6 test
       run: |
-        k6 run -e API_HOST=127.0.0.1 -e API_PORT=8080 -e DURATION=1m -e AGE_START=18 -e AGE_END=35 /k6/load-test.js
+        k6 run -e API_HOST=127.0.0.1 -e API_PORT=8080 -e DURATION=1m -e AGE_START=18 -e AGE_END=35 k6/load-test.js
 
     - name: Stop containers
       if: always()
