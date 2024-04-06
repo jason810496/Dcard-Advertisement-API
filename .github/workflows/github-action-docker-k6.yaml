@@ -35,6 +35,7 @@ jobs:
       run: |
         docker compose -f "docker-compose-benchmark.yaml" up db redis -d
         sleep 10
+        docker compose -f "docker-compose-benchmark.yaml" logs redis
 
     - name: check Docker
       run: docker compose -f "docker-compose-benchmark.yaml" ps -a
