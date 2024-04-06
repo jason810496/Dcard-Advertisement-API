@@ -16,6 +16,7 @@ type database struct {
 	User     string `yaml:"user"`
 	Password string `yaml:"password"`
 	Name     string `yaml:"name"`
+	Debug	bool   `yaml:"debug"`
 }
 
 type redis struct {

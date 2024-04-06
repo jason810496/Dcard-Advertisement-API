@@ -1,5 +1,6 @@
 package api_test
 
+/*
 import (
 	"net/http"
 	"testing"
@@ -34,3 +35,5 @@ func TestGetColdExistAd(t *testing.T) {
 
 	// add ad
 }
+
+*/

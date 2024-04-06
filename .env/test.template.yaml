@@ -2,7 +2,7 @@ app:
   desc: Adversement API
   version: v1.0.0
   address: 0.0.0.0:8080
-  env: test
+  env: prod
 database:
   kind: postgres
   host: db
@@ -10,7 +10,7 @@ database:
   user: your_postgres_user
   password: your_postgres_password
   name: advertisement
-  debug: true
+  debug: false
 redis:
   host: redis
   port: 6379

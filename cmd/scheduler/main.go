@@ -75,7 +75,7 @@ func Init() {
 func renewCache() {
 	fmt.Println("start renew cache")
 	srv := services.NewPublicService()
-	schema := schemas.NewPublicAdRequest()
+	schema := schemas.PublicAdRequest{}
 	ads := []models.Advertisement{}
 
 	// loop through gender, country, platform, age

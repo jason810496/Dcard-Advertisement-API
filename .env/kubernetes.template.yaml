@@ -10,6 +10,7 @@ database:
   user: your_postgres_user
   password: your_postgres_password
   name: advertisement
+  debug: false
 redis:
   host: redis-service.default.svc.cluster.local
   port: 6379

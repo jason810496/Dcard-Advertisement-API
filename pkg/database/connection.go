@@ -61,7 +61,7 @@ func Init() {
 	SqlDB = sqlDB
 
 	// Enable Logger, show detailed log
-	if config.Settings.App.Env == "dev" {
+	if config.Settings.Database.Debug {
 		DB = db.Debug()
 	}
 }

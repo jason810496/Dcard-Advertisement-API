@@ -10,6 +10,7 @@ database:
   user: your_postgres_user
   password: your_postgres_password
   name: advertisement
+  debug: true
 redis:
   host: 127.0.0.1
   port: 6379
