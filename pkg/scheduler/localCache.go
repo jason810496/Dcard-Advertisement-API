@@ -17,7 +17,7 @@ func RefreshLocalCache(lc *fastcache.Cache, intervalArg ...time.Duration) {
 	fmt.Println("Start Refresh local cache")
 	// Preheat cache
 	srv := services.GetPublicService()
-	req := schemas.NewPublicAdRequest()
+	req := schemas.PublicAdRequest{}
 	interval := time.Millisecond
 	// use custom interval if pass args
 	if len(intervalArg) > 0 {

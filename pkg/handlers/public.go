@@ -1,7 +1,6 @@
 package handlers
 
 import (
-
 	"github.com/gin-gonic/gin"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/schemas"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/services"
@@ -24,11 +23,19 @@ import (
 //	@Failure		400			{object}	utils.HTTPError
 //	@Router			/api/v1/ad [get]
 func PublicAd(ctx *gin.Context) {
-	json := schemas.NewPublicAdRequest()
+	json := schemas.PublicAdRequest{}
 
 	if err := ctx.ShouldBindQuery(&json); err != nil {
 		utils.NewError(ctx, 400, err)
 		return
+	}
+	if json.Limit == nil {
+		json.Limit = new(int)
+		*json.Limit = 100
+	}
+	if json.Offset == nil {
+		json.Offset = new(int)
+		*json.Offset = 0
 	}
 
 	srv := services.GetPublicService()

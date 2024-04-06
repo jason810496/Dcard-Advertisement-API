@@ -92,8 +92,8 @@ func TestServiceSetAdAndGetAdFromRedis(t *testing.T) {
 				Age:      &[]int{18}[0],
 				Country:  "TW",
 				Platform: "ios",
-				Offset:   0,
-				Limit:    100,
+				Offset:   &[]int{0}[0],
+				Limit:    &[]int{100}[0],
 			},
 			got:     make([]models.Advertisement, 0),
 			want:    make([]models.Advertisement, 0),
@@ -102,8 +102,8 @@ func TestServiceSetAdAndGetAdFromRedis(t *testing.T) {
 		{
 			req: &schemas.PublicAdRequest{
 				Age:    &[]int{18}[0],
-				Offset: 0,
-				Limit:  100,
+				Offset: &[]int{0}[0],
+				Limit:  &[]int{100}[0],
 			},
 			got:     make([]models.Advertisement, 0),
 			want:    make([]models.Advertisement, 0),
@@ -112,8 +112,8 @@ func TestServiceSetAdAndGetAdFromRedis(t *testing.T) {
 		{
 			req: &schemas.PublicAdRequest{
 				Country: "TW",
-				Offset:  0,
-				Limit:   100,
+				Offset:  &[]int{0}[0],
+				Limit:   &[]int{100}[0],
 			},
 			got:     make([]models.Advertisement, 0),
 			want:    make([]models.Advertisement, 0),
@@ -121,8 +121,8 @@ func TestServiceSetAdAndGetAdFromRedis(t *testing.T) {
 		},
 		{
 			req: &schemas.PublicAdRequest{
-				Offset: 0,
-				Limit:  100,
+				Offset: &[]int{0}[0],
+				Limit:  &[]int{100}[0],
 			},
 			got:     make([]models.Advertisement, 0),
 			want:    make([]models.Advertisement, 0),
@@ -131,8 +131,8 @@ func TestServiceSetAdAndGetAdFromRedis(t *testing.T) {
 		{
 			req: &schemas.PublicAdRequest{
 				Age:    &[]int{90}[0],
-				Offset: 0,
-				Limit:  100,
+				Offset: &[]int{0}[0],
+				Limit:  &[]int{100}[0],
 			},
 			got:     make([]models.Advertisement, 0),
 			want:    make([]models.Advertisement, 0),
@@ -187,8 +187,8 @@ func TestServiceSetAdAndGetAdFromLocalCache(t *testing.T) {
 				Age:      &[]int{18}[0],
 				Country:  "TW",
 				Platform: "ios",
-				Offset:   0,
-				Limit:    100,
+				Offset:   &[]int{0}[0],
+				Limit:    &[]int{100}[0],
 			},
 			got:     make([]models.Advertisement, 0),
 			want:    make([]models.Advertisement, 0),
@@ -197,8 +197,8 @@ func TestServiceSetAdAndGetAdFromLocalCache(t *testing.T) {
 		{
 			req: &schemas.PublicAdRequest{
 				Age:    &[]int{18}[0],
-				Offset: 0,
-				Limit:  100,
+				Offset: &[]int{0}[0],
+				Limit:  &[]int{100}[0],
 			},
 			got:     make([]models.Advertisement, 0),
 			want:    make([]models.Advertisement, 0),
@@ -207,8 +207,8 @@ func TestServiceSetAdAndGetAdFromLocalCache(t *testing.T) {
 		{
 			req: &schemas.PublicAdRequest{
 				Country: "TW",
-				Offset:  0,
-				Limit:   100,
+				Offset:  &[]int{0}[0],
+				Limit:   &[]int{100}[0],
 			},
 			got:     make([]models.Advertisement, 0),
 			want:    make([]models.Advertisement, 0),
@@ -216,8 +216,8 @@ func TestServiceSetAdAndGetAdFromLocalCache(t *testing.T) {
 		},
 		{
 			req: &schemas.PublicAdRequest{
-				Offset: 0,
-				Limit:  100,
+				Offset: &[]int{0}[0],
+				Limit:  &[]int{100}[0],
 			},
 			got:     make([]models.Advertisement, 0),
 			want:    make([]models.Advertisement, 0),
@@ -226,8 +226,8 @@ func TestServiceSetAdAndGetAdFromLocalCache(t *testing.T) {
 		{
 			req: &schemas.PublicAdRequest{
 				Age:    &[]int{90}[0],
-				Offset: 0,
-				Limit:  100,
+				Offset: &[]int{0}[0],
+				Limit:  &[]int{100}[0],
 			},
 			got:     make([]models.Advertisement, 0),
 			want:    make([]models.Advertisement, 0),
@@ -237,6 +237,7 @@ func TestServiceSetAdAndGetAdFromLocalCache(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(cache.PublicAdKey(tt.req), func(t *testing.T) {
+			SetupFunction(t)
 			err := srv.GetAdFromDB(tt.req, &tt.want)
 			if err != nil {
 				fmt.Println("GetAdFromDB got err")
