@@ -26,6 +26,11 @@ jobs:
         cp .env/dev/redis.template.env .env/dev/redis.env
         cp .env/dev/k6.template.env .env/dev/k6.env
 
+    - name: Try fix Redis issue
+      run: |
+        sudo sysctl vm.overcommit_memory=1
+        sudo sysctl -w net.core.somaxconn=65535
+
     - name: Check Config 
       run: |
         ls -l .env
