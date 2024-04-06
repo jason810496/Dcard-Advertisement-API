@@ -55,7 +55,6 @@ jobs:
         docker compose -f "docker-compose-benchmark.yaml" run -v $PWD/.env:/app/.env -d scheduler
         sleep 2
 
-
     - name: Start API
       run: |
         docker compose -f "docker-compose-benchmark.yaml" run -v $PWD/.env:/app/.env -d api
@@ -64,8 +63,18 @@ jobs:
     - name: Check API logs
       run: docker compose -f "docker-compose-benchmark.yaml" logs api
 
-    - name: Run k6 load test
-      run: docker compose run -v $PWD/k6/:/k6 k6 run /k6/load-test.js
+    - name: Download k6 
+      run: |
+        sudo gpg -k
+        sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+        echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+        sudo apt-get update
+        sudo apt-get install k6
+        k6 version
+
+    - name: Run k6 test
+      run: |
+        k6 run -e API_HOST=127.0.0.1 -e API_PORT=8080 -e DURATION=1m -e AGE_START=18 -e AGE_END=35 /k6/load-test.js
 
     - name: Stop containers
       if: always()
