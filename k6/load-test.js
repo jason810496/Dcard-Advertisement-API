@@ -16,19 +16,14 @@ export const options = {
 	},
 };
 
-// export const options = {
-//     vus: 500, // users
-//     duration: "10s",
-//     // rps: 10500,
-// };
-
 let urlString = `http://${__ENV.API_HOST}:${__ENV.API_PORT}/api/v1/ad`;
 
-const limits = [10, 20, 30, 40, 50];
+const limits = [10, 20, 30, 40, 50, 100];
 const offsets = [0, 10, 20, 30, 40, 50];
-const genders = ["F", "M"];
+const genders = ["F", "M",""];
 const countries = ["HK", "JP", "US", "KR"]; // TW
-const platforms = ["ios", "android"]; // "web"
+const countriesHotspot = ["TW",""];
+const platforms = ["ios", "android",""]; // "web"
 
 export default function () {
 	const limit = randomItem(limits);
@@ -48,6 +43,9 @@ export default function () {
 	}
 	else if (exec.vu.idInTest % 10 < 9) { // 80%
 		age = randomIntBetween(parseInt(__ENV.AGE_START), parseInt(__ENV.AGE_END));
+		if ( randomIntBetween(1, 10) < 6){
+			age = -1;
+		}
 	}
 	else{ // 10%
 		age = randomIntBetween(parseInt(__ENV.AGE_START)+1, 100);
@@ -55,7 +53,7 @@ export default function () {
 
 	// simulate real-world traffic country distribution
 	if (countryRand < 8) { // 80%
-		country = "TW";
+		country = randomItem(countriesHotspot);
 	}
 	else { // 20%
 		country = randomItem(countries);
@@ -69,8 +67,22 @@ export default function () {
 		platform = "web";
 	}
 
+	let searchParams ="";
+	if (gender !== "" ){
+		searchParams += `gender=${gender}&`;
+	}
+	if (country !== "" ){
+		searchParams += `country=${country}&`;
+	}
+	if (platform !== "" ){
+		searchParams += `platform=${platform}&`;
+	}
+	if (age !== -1 ){
+		searchParams += `age=${age}&`;
+	}
+
 	http.get(
-		`${urlString}?limit=${limit}&offset=${offset}&age=${age}&gender=${gender}&country=${country}&platform=${platform}`,
+		`${urlString}?${searchParams}limit=${limit}&offset=${offset}`,
 		{
 			tags: {
 				name: 'GetAd'
