@@ -64,7 +64,7 @@ jobs:
       run: go mod download
 
     - name: Build API
-      run: go build -v -w -o bin/api ./cmd/api 
+      run: go build -v -o bin/api ./cmd/api 
 
     - name: Start API at Background
       run: ./bin/api -config test &
