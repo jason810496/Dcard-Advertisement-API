@@ -55,15 +55,19 @@ jobs:
         docker compose -f "docker-compose-benchmark.yaml" run -v $PWD/.env:/app/.env -d scheduler
         sleep 2
 
-    - name: Start API
-      run: |
-        docker compose -f "docker-compose-benchmark.yaml" run -v $PWD/.env:/app/.env -d api
-        sleep 10
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.21
 
-    - name: Check API logs
-      run: |
-        docker compose -f "docker-compose-benchmark.yaml" ps
-        docker compose -f "docker-compose-benchmark.yaml" logs api
+    - name: install go modules
+      run: go mod download
+
+    - name: Build API
+      run: go build -v -w -o bin/api ./cmd/api 
+
+    - name: Start API at Background
+      run: ./bin/api -config test &
 
     - name: Download k6 
       run: |

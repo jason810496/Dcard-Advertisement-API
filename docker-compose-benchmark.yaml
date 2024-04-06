@@ -32,9 +32,10 @@ services:
       retries: 3
 
   generator:
-    build: 
-      context: .
-      dockerfile: ./deployments/dev/generator/Dockerfile
+    image: jasonbigcow/dcard-advertisement-api-generator:v2
+    # build: 
+    #   context: .
+    #   dockerfile: ./deployments/dev/generator/Dockerfile
     restart: always
     # volumes:
     #   - .env:/app/.env
@@ -46,9 +47,10 @@ services:
     command: ["./generator","-config","test"]
 
   scheduler:
-    build: 
-      context: .
-      dockerfile: ./deployments/dev/scheduler/Dockerfile
+    image: jasonbigcow/dcard-advertisement-api-scheduler:v2
+    # build: 
+    #   context: .
+    #   dockerfile: ./deployments/dev/scheduler/Dockerfile
     restart: always
     # volumes:
     #   - .env:/app/.env
