@@ -15,6 +15,8 @@ services:
       interval: 2s
       timeout: 5s
       retries: 3
+    labels:
+        - "traefik.enable=false"
 
   redis:
     image: bitnami/redis:latest
@@ -30,12 +32,15 @@ services:
       interval: 2s
       timeout: 5s
       retries: 3
+    labels:
+      - "traefik.enable=false"
 
   generator:
-    build: 
-      context: .
-      dockerfile: ./deployments/dev/generator/Dockerfile
-    restart: always
+    image: jasonbigcow/dcard-advertisement-api-generator:v2
+    # build: 
+    #   context: .
+    #   dockerfile: ./deployments/dev/generator/Dockerfile
+    # restart: always
     volumes:
       - .env:/app/.env
     depends_on:
@@ -46,9 +51,10 @@ services:
     command: ["./generator","-config","test"]
 
   scheduler:
-    build: 
-      context: .
-      dockerfile: ./deployments/dev/scheduler/Dockerfile
+    image: jasonbigcow/dcard-advertisement-api-scheduler:v2
+    # build: 
+    #   context: .
+    #   dockerfile: ./deployments/dev/scheduler/Dockerfile
     restart: always
     volumes:
       - .env:/app/.env
@@ -63,8 +69,10 @@ services:
     build: 
       context: .
       dockerfile: ./deployments/dev/api/Dockerfile
-    ports:
-      - 8080:8080
+    # ports:
+    #   - 8000:8000
+    expose:
+      - "8000"
     restart: always
     volumes:
       - .env:/app/.env
@@ -73,9 +81,14 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      # scheduler:
-      #   condition: service_started
     command: ["./api","-config","test"]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api.rule=Host(`localhost`)"
+      - "traefik.http.routers.api.entrypoints=api"
+      - "traefik.http.services.api.loadbalancer.server.port=8000"
+
+
 
   k6:
     image: grafana/k6
@@ -84,12 +97,28 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      # scheduler:
-      #   condition: service_started
-      # api:
-      #   condition: service_started
+      api:
+        condition: service_started
     env_file:
       - .env/dev/k6.env
+
+  reverse-proxy:
+    # The official v2 Traefik docker image
+    image: traefik:v2.11
+    # Enables the web UI and tells Traefik to listen to docker
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.api.address=:8000"
+    ports:
+      # The HTTP port
+      - "8000:8000"
+      # The Web UI (enabled by --api.insecure=true)
+      - "8080:8080"
+    volumes:
+      # So that Traefik can listen to the Docker events
+      - /var/run/docker.sock:/var/run/docker.sock
 
 networks:
   default: 

@@ -50,6 +50,26 @@ local-db:
 	docker compose up db -d
 	docker compose up redis -d
 
+.PHONY: local-benchmark-db
+local-benchmark-db:
+	docker compose -f docker-compose-scale.yaml up db -d
+	docker compose -f docker-compose-scale.yaml up redis -d
+
+.PHONY: local-benchmark-api
+local-benchmark-api:
+ifndef scale
+	$(error scale is not set)
+endif
+	docker compose -f docker-compose-scale.yaml up --scale api=$(scale) -d
+
+.PHONY: local-benchmark-scheduler
+local-benchmark-scheduler:
+	docker compose -f docker-compose-scale.yaml up scheduler -d
+
+.PHONY: local-benchmark-generator
+local-benchmark-generator:
+	docker compose -f docker-compose-scale.yaml up generator -d
+
 .PHONY: local-clean
 local-clean:
 	docker compose down
