@@ -36,6 +36,11 @@ spec:
           configMapKeyRef:
             name: k6-config
             key: AGE_END
+      - name: DURATION
+        valueFrom:
+          configMapKeyRef:
+            name: k6-config
+            key: DURATION
       # write metrics to prometheus (grafana cloud)
       # https://github.com/javaducky/demo-k6-operator/blob/main/resources/k6-output-grafana-cloud.yaml
     #   - name: K6_OUT

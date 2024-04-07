@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k6-deployment
+  labels:
+    app: k6
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k6
+  template:
+    metadata:
+      labels:
+        app: k6
+    spec:
+        containers:
+        - name: k6
+          image: loadimpact/k6
+          command: ["tail","-f","/dev/null"]
+          resources:
+            requests:
+              memory: "100Mi"
+              cpu: "250m"
+            limits:
+              memory: "500Mi"
+              cpu: "600m"
+              
