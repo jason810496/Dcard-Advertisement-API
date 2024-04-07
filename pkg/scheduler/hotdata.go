@@ -16,7 +16,7 @@ func GenerateHotData(interval *time.Duration, callback callbackType) {
 			// platform
 			for _, p := range utils.PlatformList {
 				// age
-				for a := config.Settings.HotData.AgeStart; a <= config.Settings.HotData.AgeEnd; a++ {
+				for a := config.Settings.HotData.AgeStart; a <= config.Settings.HotData.AgeEnd+1; a++ {
 					callback(&g, &c, &p, &a)
 					time.Sleep(*interval)
 				}

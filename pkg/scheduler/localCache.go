@@ -7,6 +7,7 @@ import (
 
 	"github.com/VictoriaMetrics/fastcache"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/cache"
+	"github.com/jason810496/Dcard-Advertisement-API/pkg/config"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/models"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/schemas"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/services"
@@ -24,10 +25,14 @@ func RefreshLocalCache(lc *fastcache.Cache, intervalArg ...time.Duration) {
 		interval = intervalArg[0]
 	}
 	GenerateHotData(&interval, func(g *string, c *string, p *string, a *int) {
-		req.Age = a
 		req.Country = *c
-		req.Platform = *p
 		req.Gender = *g
+		req.Platform = *p
+		if *a == config.Settings.HotData.AgeEnd+1 {
+			req.Age = nil
+		} else {
+			req.Age = a
+		}
 
 		key := cache.PublicAdKey(&req)
 		var ads []models.Advertisement
