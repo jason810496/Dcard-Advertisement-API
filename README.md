@@ -15,6 +15,8 @@ The assignment can be broadly defined as:  <br>
 ## Table of Contents
 
 * [Dcard Advertisement API](#dcard-advertisement-api)
+   * [Benchmark Summary](#benchmark-summary)
+   * [Table of Contents](#table-of-contents)
    * [TODO](#todo)
    * [Problem Statement](#problem-statement)
       * [API 1: Create Advertisement](#api-1-create-advertisement)
@@ -28,7 +30,15 @@ The assignment can be broadly defined as:  <br>
       * [Estimated Data Size](#estimated-data-size)
       * [Redis Cache](#redis-cache)
          * [Implementation Details](#implementation-details)
-      * [How to evict and refresh Local Cache ?](#how-to-evict-and-refresh-local-cache-)
+      * [How to refresh Local Cache ?](#how-to-refresh-local-cache-)
+         * [Implementation Details](#implementation-details-1)
+      * [Not fast enough ? Cache by URI](#not-fast-enough--cache-by-uri)
+      * [Pros](#pros)
+      * [Cons](#cons)
+   * [Problem I faced](#problem-i-faced)
+      * [Redis Sentinel: return docker container IP](#redis-sentinel-return-docker-container-ip)
+      * [GKE: cross node network latency](#gke-cross-node-network-latency)
+      * [How to cache all data ?](#how-to-cache-all-data-)
    * [Benchmark](#benchmark)
       * [How to stimulate the real world data ?](#how-to-stimulate-the-real-world-data-)
       * [Redis Cache + Local Cache + PG Primary Replica + Refactor Models + Cache by URI](#redis-cache--local-cache--pg-primary-replica--refactor-models--cache-by-uri)
@@ -388,25 +398,174 @@ flowchart TD
 - 可以看成為 **Local Cache** 再多加上一層 **URI Cache** <br>
     - 如果 **URI Cache** 有命中，就直接回傳 **Response** <br>
 
-### Pros
-
-最後加上 **Local Cache** 和 **URI Cache** 的設計 <br>
-在 Local 可以達到 **10000 RPS** 的要求 <br>
-> 13830.616806/s
-
-### Cons
-
-**Cache by URI** 的設計比單純的 **Local Cache** 多了一倍的 **Memory** 使用量 <br>
-- 單純只有 **Local Cache** 在 benchmark 時約使用 **500 MB** 的 Memory <br>
-- 加上 **Cache by URI** 後約使用 **700 ~ 700 MB** 的 Memory <br>
+#### Pros & Cons
+- Pros
+    最後加上 **Local Cache** 和 **URI Cache** 的設計 <br>
+    在 Local 可以達到 **10000 RPS** 的要求 <br>
+    > 13830.616806/s !
+- Cons
+    - **Cache by URI** 的設計比單純的 **Local Cache** 多了一倍的 **Memory** 使用量 <br>
+        - 單純只有 **Local Cache** 在 benchmark 時約使用 **500 MB** 的 Memory <br>
+        - 加上 **Cache by URI** 後約使用 **700 ~ 700 MB** 的 Memory <br>
 
 ## Problem I faced
 
 ### Redis Sentinel: return docker container IP
 
+在 Local 開發時，使用 **Docker** 來跑 **Redis Sentinel** <br>
+有在 [feature/redis-sentinel](https://github.com/jason810496/Dcard-Advertisement-API/tree/feature/redis-sentinel) branch 設定好 Redis Sentinel <br>
+
+但在 **Redis Sentinel** 的 **Master** 和 **Replica** 都是回傳 **Docker Container IP** <br>
+- 這樣會造成 **Golang** 連接 **Redis** 時，無法連接到 **Redis Sentinel** <br>
+
+<br>
+
+目前想到的解法是 : <br>
+直接使用 helm chart 來部署 Bitnami **Redis Sentinel** <br>
+
 ### GKE: cross node network latency
 
+在 Redis + Local Cache 版本的 benchmark 時 <br>
+發現在 **GKE** 上的 **QPS** 遠比 **Local** 和 **GCE** 低! <br>
+
+查看 pod 被分配到的 node 發現 : 所有的 pod 被分配到 **3 個不同的 node** <br>
+```
+NAME                                        STATUS   ROLES    AGE    VERSION
+gk3-dcard-ad-cluster-pool-2-1029589d-5xq7   Ready    <none>   98m    v1.27.8-gke.1067004
+gk3-dcard-ad-cluster-pool-2-1029589d-cwjj   Ready    <none>   17m    v1.27.8-gke.1067004
+gk3-dcard-ad-cluster-pool-2-2fbad26e-hj69   Ready    <none>   144m   v1.27.8-gke.1067004
+gk3-dcard-ad-cluster-pool-2-368b8fc3-7g5l   Ready    <none>   144m   v1.27.8-gke.1067004
+NAME                                   STATUS      NODE
+database-statefulset-0                 Running     gk3-dcard-ad-cluster-pool-2-1029589d-5xq7
+redis-statefulset-0                    Running     gk3-dcard-ad-cluster-pool-2-1029589d-5xq7
+api-deployment-5fcb7fcb7d-pnlsb        Running     gk3-dcard-ad-cluster-pool-2-1029589d-cwjj
+api-deployment-5fcb7fcb7d-czpf6        Running     gk3-dcard-ad-cluster-pool-2-2fbad26e-hj69
+k6-deployment-648bfd955f-n6zc4         Running     gk3-dcard-ad-cluster-pool-2-2fbad26e-hj69
+api-deployment-5fcb7fcb7d-zqmhw        Running     gk3-dcard-ad-cluster-pool-2-368b8fc3-7g5l
+scheduler-deployment-599db6dc6-nj6kt   Running     gk3-dcard-ad-cluster-pool-2-368b8fc3-7g5l
+generator-pod                          Succeeded   gk3-dcard-ad-cluster-pool-2-2fbad26e-hj69
+```
+<br>
+
+以不同的 API replica 數量部署，比較在 Benchmark 時的 **QPS** 和 **CPU,RAM** 使用量 <br>
+- **2 replica API**
+    ```
+    NAME                              CPU(cores)   MEMORY(bytes)
+    api-deployment-5fcb7fcb7d-czpf6   127m         79Mi
+    NAME                              CPU(cores)   MEMORY(bytes)
+    api-deployment-5fcb7fcb7d-zqmhw   123m         75Mi
+    NAME                  CPU(cores)   MEMORY(bytes)
+    redis-statefulset-0   42m          9Mi
+    NAME                     CPU(cores)   MEMORY(bytes)
+    database-statefulset-0   46m          46Mi
+    ```
+- **3 replica API**
+    ```
+    ❯ ./scripts/status.sh top
+    NAME                              CPU(cores)   MEMORY(bytes)
+    api-deployment-5fcb7fcb7d-czpf6   81m          73Mi
+    NAME                              CPU(cores)   MEMORY(bytes)
+    api-deployment-5fcb7fcb7d-pnlsb   72m          57Mi
+    NAME                              CPU(cores)   MEMORY(bytes)
+    api-deployment-5fcb7fcb7d-zqmhw   82m          72Mi
+    NAME                     CPU(cores)   MEMORY(bytes)
+    database-statefulset-0   49m          56Mi
+    NAME                  CPU(cores)   MEMORY(bytes)
+    redis-statefulset-0   50m          10Mi
+    ```
+- **5 replica API**
+    ```
+    NAME                              CPU(cores)   MEMORY(bytes)
+    api-deployment-5fcb7fcb7d-44ndl   45m          44Mi
+    NAME                              CPU(cores)   MEMORY(bytes)
+    api-deployment-5fcb7fcb7d-czpf6   55m          67Mi
+    NAME                              CPU(cores)   MEMORY(bytes)
+    api-deployment-5fcb7fcb7d-g9wxc   60m          45Mi
+    NAME                              CPU(cores)   MEMORY(bytes)
+    api-deployment-5fcb7fcb7d-pnlsb   45m          52Mi
+    NAME                              CPU(cores)   MEMORY(bytes)
+    api-deployment-5fcb7fcb7d-zqmhw   57m          64Mi
+    NAME                     CPU(cores)   MEMORY(bytes)
+    database-statefulset-0   52m          101Mi
+    NAME                  CPU(cores)   MEMORY(bytes)
+    redis-statefulset-0   40m          10Mi
+    ```
+
+可以看到 API replica 數量增加時 <br>
+QPR 與 DB 和 Redis 的 CPU,RAM 使用量沒有明顯增加 <br>
+
+所以可以推測是 **cross node network latency** 的問題 <br>
+
 ### How to cache all data ?
+
+最一開始在規劃 Cache 時 <br>
+卡在 **要如何將所有資料都 cache 到 Redis 中並有效率的查詢** <br>
+> 以 age 的範圍是 1 ~ 100 來說 <br>
+> 所有的組合有 100 * 6 * 4 * 3 = 7200 種 <br>
+> 如果每個組合都要 cache 到 Redis 中 <br>
+> 會造成 **Memory** 的浪費和 **查詢效率** 的下降 <br>
+
+<br>
+
+但多次思考後發現 : <br>
+- 並不需要把所有資料都 cache 到 Redis 中 <br>
+- 只需要把 **Hotspot** 的資料 cache 到 Redis 中 <br>
+- 並著重在
+    - 如何讓系統在穩定的狀態下，定期的更新 **Hotspot** 的資料 <br>
+    - 有效率的查詢 Cache 過的資料 <br>
+
+
+## Setup : Development
+
+### Prerequisites
+
+- `air` : Hot reload for Go
+- `swag` : auto generate API doc
+- `make` : Build tool
+
+### Setup
+
+```bash
+```
+
+## Setup : Production ( kubernetes )
+
+
+## Features : Distributed Locks with Redis 
+
+Hotspot Invalid ( 快取擊穿 ) <br>
+
+## Features : Local Cache in Memory
+
+https://github.com/chenyahui/gin-cache
+
+除了在 Redis 做 Cache ， 也可以在 Local Memory 做 Cache <br>
+但是會設定更短的 TTL <br>
+
+## Features : High availability with Redis Sentinel
+
+現在我們的 API 對 Redis 有很高的依賴 <br>
+如果 Redis instance 掛掉，整個 DB 也會被流量打掛 <br>
+所以要保證 Redis 的高可用性 <br>
+
+這邊可以透過 Redis Sentinel ( 哨兵模式 ) 來達成 <br>
+並且可以將 Query 操作分散到多個 Redis instance 上 <br>
+
+## Benchmark: `k6-operator` CRD
+
+`k6-operator` 是一個可以在 k8s 上以 k6 做 load testing 的 CRD <br>
+- 提供 `parallelsim` 把 rate 平均分散給 N 個 k6 instance
+    - 可以降低單一個 k6 instance CPU 飆高的問題
+    - 在 k8s cluster 內執行 distributed load testing
+- 可以設定 prometheus 的 Remote Write Endpoint 來收集資料到 Grafana Cloud
+- 使用 configmap 來設定 k6 的 script
+
+
+> ![k6-k8s-kill-by-cpu]()
+> 在某些測試情況下，單一個 k6 instance 很容易會以指數上升用量去吃 CPU
+> 造成 resource limit 被 kill
+
+## DevOps : CI/CD
 
 ## Benchmark
 
@@ -842,58 +1001,3 @@ WARN[0029] Insufficient VUs, reached 10000 active VUs and cannot initialize more
 ### More benchmark records
 
 [Dcard 2024 benchmark record (HackMD)](https://hackmd.io/@zhu424/Dcard-2024-benchmark-record)
-
-
-## Setup : Development
-
-### Prerequisites
-
-- `air` : Hot reload for Go
-- `swag` : auto generate API doc
-- `make` : Build tool
-
-### Setup
-
-```bash
-```
-
-## Setup : Production ( kubernetes )
-
-
-## Features : Distributed Locks with Redis 
-
-Hotspot Invalid ( 快取擊穿 ) <br>
-
-## Features : Local Cache in Memory
-
-https://github.com/chenyahui/gin-cache
-
-除了在 Redis 做 Cache ， 也可以在 Local Memory 做 Cache <br>
-但是會設定更短的 TTL <br>
-
-## Features : High availability with Redis Sentinel
-
-現在我們的 API 對 Redis 有很高的依賴 <br>
-如果 Redis instance 掛掉，整個 DB 也會被流量打掛 <br>
-所以要保證 Redis 的高可用性 <br>
-
-這邊可以透過 Redis Sentinel ( 哨兵模式 ) 來達成 <br>
-並且可以將 Query 操作分散到多個 Redis instance 上 <br>
-
-## Benchmark: `k6-operator` CRD
-
-`k6-operator` 是一個可以在 k8s 上以 k6 做 load testing 的 CRD <br>
-- 提供 `parallelsim` 把 rate 平均分散給 N 個 k6 instance
-    - 可以降低單一個 k6 instance CPU 飆高的問題
-    - 在 k8s cluster 內執行 distributed load testing
-- 可以設定 prometheus 的 Remote Write Endpoint 來收集資料到 Grafana Cloud
-- 使用 configmap 來設定 k6 的 script
-
-
-> ![k6-k8s-kill-by-cpu]()
-> 在某些測試情況下，單一個 k6 instance 很容易會以指數上升用量去吃 CPU
-> 造成 resource limit 被 kill
-
-## DevOps : CI/CD
-
-## Reference
