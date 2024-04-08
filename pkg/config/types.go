@@ -25,6 +25,12 @@ type redis struct {
 	Password string        `yaml:"password"`
 	Username string        `yaml:"user"`
 	TTL      time.Duration `yaml:"ttl"`
+	Sentinel sentinel	  `yaml:"sentinel"`
+}
+
+type sentinel struct {
+	MasterName string   `yaml:"masterName"`
+	Addrs      []string `yaml:"address"`
 }
 
 type schedule struct {
