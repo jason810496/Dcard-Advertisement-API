@@ -3,6 +3,15 @@ Dcard Backend Intern Assignment  2024 .  <br>
 The assignment can be broadly defined as:  <br>
 <pre> Developing a read-heavy API (1000 requests per second) for querying time-series data within specific intervals under multiple conditions. </pre>
 
+## Benchmark Summary
+
+- **Local** : MacBook Air (M1, 2020), 16GB RAM
+    - `13830.616806/s`
+- **GKE** : Google Kubernetes Engine, **Autopilot** mode, asia-east1
+    - `456.225066/s` (old version code)
+- **GCE** : Google Compute Engine, **e2-standard-4** (4 vCPUs, 16 GB memory), asia-east1
+    - `3233.865472/s` (old version code)
+
 ## Table of Contents
 
 * [Dcard Advertisement API](#dcard-advertisement-api)
@@ -115,6 +124,9 @@ curl -X GET -H "Content-Type: application/json" \
 ## System Architecture
 
 ### Ideal Architecture
+
+原本在 Redis Cache 的部分是想要用 **Redis Sentinel** 的架構 <br>
+- 來達到 **High Availability** 和 **Read Scalability** 的目的
 ```mermaid
 flowchart TD
     Ingress[Ingress] 
@@ -341,7 +353,60 @@ flowchart TD
     - 不會佔用太多的 Memory 和 Key 導致 Redis 的效能下降 <br>
 
 
-### How to evict and refresh Local Cache ?
+### How to refresh Local Cache ?
+
+一開始想到 Local Cache 的設計是 : 
+在 Local 存一份與 Redis 相似的 key-value 結構 <br>
+- `Key` : 同樣為 `ad:age:country:platform:gender` <br>
+- `Value` : 則是以 `[]byte` 的形式存入 <br>
+    - 這樣可以直接用 `json.Unmarshal` 來轉換成 struct <br>
+    - 所以剛好可以使用 `fastcache` 來實作 ! <br>
+    - 也可以順便 cache 其他不屬於 Hotspot 的資料 <br>
+
+但在實作時想到 : <br>
+- 如果 Redis 的 Cache 更新了，但 Local Cache 沒有更新 <br>
+- 也會造成 **Local Cache 的資料不一致** <br>
+
+所以需要一個 **Background Goroutine** 來定期的更新 Local Cache <br>
+
+#### Implementation Details
+
+與更新 **Redis Cache** 的 **Corn Job** 類似 <br>
+同樣定期更新 **Hotspot** 的資料 <br>
+- 當時的實作是直接往 DB 查詢，然後更新 Local Cache <br>
+    - 這樣可以確保 Local Cache 的資料是最新的 <br>
+    - 但發現直接往 DB 查詢會造成 **DB 的負擔** 過重 <br>
+    - 所以還是改成往 Redis 查詢，然後更新 Local Cache <br>
+
+### Not fast enough ? Cache by URI
+
+在 Local Cache 存與 Redis 相同的 key-value 結構後 <br>
+還是不能在 Local 達到 **10000 RPS** 的要求 <br>
+
+所以可以透過 **gin-cache** 來實作 <br>
+- 透過 **gin-cache** 來直接 cache **URI** 的 response <br>
+- 可以看成為 **Local Cache** 再多加上一層 **URI Cache** <br>
+    - 如果 **URI Cache** 有命中，就直接回傳 **Response** <br>
+
+### Pros
+
+最後加上 **Local Cache** 和 **URI Cache** 的設計 <br>
+在 Local 可以達到 **10000 RPS** 的要求 <br>
+> 13830.616806/s
+
+### Cons
+
+**Cache by URI** 的設計比單純的 **Local Cache** 多了一倍的 **Memory** 使用量 <br>
+- 單純只有 **Local Cache** 在 benchmark 時約使用 **500 MB** 的 Memory <br>
+- 加上 **Cache by URI** 後約使用 **700 ~ 700 MB** 的 Memory <br>
+
+## Problem I faced
+
+### Redis Sentinel: return docker container IP
+
+### GKE: cross node network latency
+
+### How to cache all data ?
 
 ## Benchmark
 
