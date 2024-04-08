@@ -3,6 +3,8 @@ package api_test
 import (
 	"fmt"
 	"os"
+	"sort"
+	"strings"
 	"testing"
 	"time"
 
@@ -75,6 +77,12 @@ func ClearLocalCache() {
 	cache.LocalCacheInstance.Reset()
 }
 
+func serializeArray(arr *[]string) string {
+	// sort array
+	sort.Strings(*arr)
+	return strings.Join(*arr, ",")
+}
+
 func GenerateAds() {
 	db := database.DB
 	ageStart := 18
@@ -99,9 +107,9 @@ func GenerateAds() {
 					EndAt:    &[]time.Time{time.Now().Add(time.Hour * 24 * 30)}[0],
 					AgeStart: uint8(ageStart),
 					AgeEnd:   uint8(ageEnd),
-					Gender:   utils.ToJsonArray(genderList),
-					Country:  utils.ToJsonArray(countryList),
-					Platform: utils.ToJsonArray(platformList),
+					Gender:   serializeArray(&genderList),
+					Country:  serializeArray(&countryList),
+					Platform: serializeArray(&platformList),
 				}
 				db.Create(&ad)
 			}

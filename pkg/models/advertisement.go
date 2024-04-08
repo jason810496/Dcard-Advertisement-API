@@ -1,7 +1,7 @@
 package models
 
 import (
-	"gorm.io/datatypes"
+	// "gorm.io/datatypes"
 	// "gorm.io/gorm"
 	"time"
 )
@@ -21,9 +21,9 @@ type Advertisement struct {
 	// conditions
 	AgeStart uint8          `json:"ageStart,omitempty"`
 	AgeEnd   uint8          `json:"ageEnd,omitempty"`
-	Gender   datatypes.JSON `json:"gender,omitempty"`   // ["F", "M"]
-	Country  datatypes.JSON `json:"country,omitempty"`  // ["TW", "HK", "JP", "US", "KR"]
-	Platform datatypes.JSON `json:"platform,omitempty"` // ["ios", "android", "web"]
+	Gender   string `json:"gender,omitempty"`   // ["F", "M"]
+	Country  string `json:"country,omitempty"`  // ["TW", "HK", "JP", "US", "KR"]
+	Platform string `json:"platform,omitempty"` // ["ios", "android", "web"]
 	// have loaded to redis
 	Active bool `json:"active,omitempty"`
 }

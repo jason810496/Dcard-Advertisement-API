@@ -29,26 +29,26 @@ func TestServiceGetAdFromDB(t *testing.T) {
 				Country:  "TW",
 				Platform: "ios",
 			},
-			wantLen: 2,
+			wantLen: 3,
 			wantErr: nil,
 		},
 		{
 			req: &schemas.PublicAdRequest{
 				Age: &[]int{18}[0],
 			},
-			wantLen: 30,
+			wantLen: 72,
 			wantErr: nil,
 		},
 		{
 			req: &schemas.PublicAdRequest{
 				Country: "TW",
 			},
-			wantLen: 6,
+			wantLen: 12,
 			wantErr: nil,
 		},
 		{
 			req:     &schemas.PublicAdRequest{},
-			wantLen: 30,
+			wantLen: 72,
 			wantErr: nil,
 		},
 		{

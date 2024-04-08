@@ -16,7 +16,7 @@ import (
 
 	// "github.com/jason810496/Dcard-Advertisement-API/pkg/utils"
 	"github.com/redis/go-redis/v9"
-	"gorm.io/datatypes"
+	// "gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -143,17 +143,17 @@ func (srv *PublicService) GetAdFromDB(req *schemas.PublicAdRequest, ads *[]model
 	tx = tx.Where("start_at <= ? AND end_at >= ?", now, now)
 	// has Gender condition
 	if req.Gender != "" {
-		tx = tx.Where(datatypes.JSONQuery("gender").HasKey(req.Gender))
+		tx = tx.Where("gender LIKE ?", "%"+req.Gender+"%")
 	}
 
 	// has Country condition
 	if req.Country != "" {
-		tx = tx.Where(datatypes.JSONQuery("country").HasKey(req.Country))
+		tx = tx.Where("country LIKE ?", "%"+req.Country+"%")
 	}
 
 	// has Platform condition
 	if req.Platform != "" {
-		tx = tx.Where(datatypes.JSONQuery("platform").HasKey(req.Platform))
+		tx = tx.Where("platform LIKE ?", "%"+req.Platform+"%")
 	}
 
 	// has Age condition
