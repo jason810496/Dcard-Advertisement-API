@@ -16,20 +16,20 @@ services:
       timeout: 5s
       retries: 3
 
-  # redis:
-  #   image: bitnami/redis:latest
-  #   ports:
-  #     - 6379:6379
-  #   restart: always
-  #   volumes:
-  #     - ./stateful_volumes/dev/redis:/bitnami/redis/data
-  #   env_file:
-  #     - .env/dev/redis.env
-  #   healthcheck:
-  #     test: ["CMD", "redis-cli", "ping"]
-  #     interval: 2s
-  #     timeout: 5s
-  #     retries: 3
+  redis:
+    image: bitnami/redis:latest
+    ports:
+      - 6379:6379
+    restart: always
+    volumes:
+      - ./stateful_volumes/dev/redis:/bitnami/redis/data
+    env_file:
+      - .env/dev/redis.env
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 5s
+      retries: 3
 
   generator:
     build: 

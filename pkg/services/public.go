@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/VictoriaMetrics/fastcache"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/cache"
+	"github.com/jason810496/Dcard-Advertisement-API/pkg/config"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/database"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/models"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/schemas"
@@ -21,9 +23,12 @@ import (
 )
 
 type PublicService struct {
-	db  *gorm.DB
-	lc  *fastcache.Cache
-	rds *cache.RedisClient
+	db                  *gorm.DB
+	lc                  *fastcache.Cache
+	rds                 *cache.RedisClient
+	rd_rds              *cache.RedisClusterClient
+	wt_rds              *cache.RedisClient
+	redis_sentinel_mode bool
 }
 type DBClient gorm.DB
 type RedisClient cache.RedisClient
@@ -38,7 +43,24 @@ func GetPublicService() *PublicService {
 }
 
 func NewPublicService() *PublicService {
-	return &PublicService{db: database.DB, rds: cache.RedisClientInstance, lc: cache.LocalCacheInstance}
+	if config.Settings.Redis.Mode == "sentinel" {
+		return &PublicService{
+			db:                  database.DB,
+			lc:                  cache.LocalCacheInstance,
+			rds:                 nil,
+			rd_rds:              cache.RedisFailoverClusterClientReadInstance,
+			wt_rds:              cache.RedisFailoverClusterClientWriteInstance,
+			redis_sentinel_mode: true,
+		}
+	}
+	return &PublicService{
+		db:                  database.DB,
+		lc:                  cache.LocalCacheInstance,
+		rds:                 cache.RedisClientInstance,
+		rd_rds:              nil,
+		wt_rds:              nil,
+		redis_sentinel_mode: false,
+	}
 }
 
 // []models.Advertisement, error
@@ -232,8 +254,16 @@ func (srv *PublicService) SetAdToRedis(req *schemas.PublicAdRequest, ads *[]mode
 
 func (srv *PublicService) SetHotSpotAdToRedis(req *schemas.PublicAdRequest, ads *[]models.Advertisement) error {
 	key := cache.PublicAdKey(req)
-	rds := srv.rds.Client
-	rds_ctx := srv.rds.Context
+	var rds *redis.Client
+	var rds_ctx context.Context
+
+	if srv.redis_sentinel_mode {
+		rds = srv.wt_rds.Client
+		rds_ctx = srv.wt_rds.Context
+	} else {
+		rds = srv.rds.Client
+		rds_ctx = srv.rds.Context
+	}
 
 	cmd := make([]interface{}, 0, len(*ads)*2)
 	for idx, ad := range *ads {

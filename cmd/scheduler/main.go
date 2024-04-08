@@ -30,14 +30,15 @@ func main() {
 		fmt.Println(err)
 	}
 
-	renewCache()
+	// renewCache(&config.Settings.Schedule.FirstInterval)
 	// add a job to the scheduler
 	j, err := s.NewJob(
 		gocron.DurationJob(
-			10*time.Second,
+			config.Settings.Schedule.Period,
 		),
 		gocron.NewTask(
 			renewCache,
+			&config.Settings.Schedule.Interval,
 		),
 	)
 	if err != nil {
@@ -68,18 +69,21 @@ func main() {
 func Init() {
 	config.Init()
 	database.Init()
-	cache.Init()
-	cache.RedisClientInstance.CheckConnection()
+	// cache.Init()
+	cache.InitClusterReadClient()
+	cache.InitClusterWriteClient()
+	cache.RedisFailoverClusterClientReadInstance.CheckConnection()
+	cache.RedisFailoverClusterClientWriteInstance.CheckConnection()
 }
 
-func renewCache() {
+func renewCache(interval *time.Duration) {
 	fmt.Println("start renew cache")
 	srv := services.NewPublicService()
 	schema := schemas.PublicAdRequest{}
 	ads := []models.Advertisement{}
 
 	// loop through gender, country, platform, age
-	scheduler.GenerateHotData(&config.Settings.Schedule.Interval, func(g, c, p *string, a *int) {
+	scheduler.GenerateHotData(interval, func(g, c, p *string, a *int) {
 		schema.Country = *c
 		schema.Gender = *g
 		schema.Platform = *p
@@ -88,7 +92,7 @@ func renewCache() {
 		} else {
 			schema.Age = a
 		}
-		
+
 		key := cache.PublicAdKey(&schema)
 		fmt.Println("key: ", key)
 
