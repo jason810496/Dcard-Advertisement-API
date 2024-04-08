@@ -10,13 +10,24 @@ type app struct {
 }
 
 type database struct {
-	Kind     string `yaml:"kind"`
+	Kind     string  `yaml:"kind"`
+	Host     string  `yaml:"host"`
+	Port     string  `yaml:"port"`
+	User     string  `yaml:"user"`
+	Password string  `yaml:"password"`
+	Name     string  `yaml:"name"`
+	Debug    bool    `yaml:"debug"`
+	Mode     string  `yaml:"mode"`
+	Replica  replica `yaml:"replica"`
+}
+
+type replica struct {
 	Host     string `yaml:"host"`
 	Port     string `yaml:"port"`
 	User     string `yaml:"user"`
 	Password string `yaml:"password"`
 	Name     string `yaml:"name"`
-	Debug	bool   `yaml:"debug"`
+	Debug    bool   `yaml:"debug"`
 }
 
 type redis struct {

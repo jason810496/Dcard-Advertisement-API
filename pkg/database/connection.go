@@ -11,6 +11,7 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"gorm.io/plugin/dbresolver"
 
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/config"
 	"github.com/jason810496/Dcard-Advertisement-API/pkg/models"
@@ -42,6 +43,17 @@ func Init() {
 		panic("Failed to connect to database")
 	}
 	log.Println("Connected to database")
+
+	if config.Settings.Database.Mode == "primary-replica" {
+		db.Use(dbresolver.Register(dbresolver.Config{
+			Sources:  []gorm.Dialector{getDialector()},
+			Replicas: []gorm.Dialector{getDialector(), getReplicaDialector()},
+			// sources/replicas load balancing policy
+			Policy: dbresolver.RandomPolicy{},
+			// print sources/replicas mode in logger
+			TraceResolverMode: true,
+		}).SetConnMaxIdleTime(10 * time.Second))
+	}
 
 	// Set database connection pool
 	sqlDB, err := db.DB()
@@ -88,6 +100,32 @@ func getDialector() gorm.Dialector {
 		))
 	case "sqlite":
 		return sqlite.Open(config.Settings.Database.Name + ".db")
+	default:
+		panic("Database kind not supported")
+	}
+}
+
+func getReplicaDialector() gorm.Dialector {
+	// Get database configuration
+	switch config.Settings.Database.Kind {
+	case "mysql":
+		return mysql.Open(fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+			config.Settings.Database.Replica.User,
+			config.Settings.Database.Replica.Password,
+			config.Settings.Database.Replica.Host,
+			config.Settings.Database.Replica.Port,
+			config.Settings.Database.Replica.Name,
+		))
+	case "postgres":
+		return postgres.Open(fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=disable TimeZone=Asia/Taipei",
+			config.Settings.Database.Replica.Host,
+			config.Settings.Database.Replica.Port,
+			config.Settings.Database.Replica.User,
+			config.Settings.Database.Replica.Name,
+			config.Settings.Database.Replica.Password,
+		))
+	case "sqlite":
+		return sqlite.Open(config.Settings.Database.Replica.Name + ".db")
 	default:
 		panic("Database kind not supported")
 	}
