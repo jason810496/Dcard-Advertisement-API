@@ -561,6 +561,61 @@ make gke-scheduler
 
 ## Project Structure
 
+```bash
+.
+├── .env # Environment Variables and Config
+│   ├── dev
+│   │   ├── db.template.env
+│   │   ├── k6-operator.env
+│   │   ├── k6-operator.template.env
+│   │   ├── k6.template.env
+│   │   └── redis.template.env
+│   ├── kubernetes
+│   │   ├── k6-grafana-cloud-prometheus.env
+│   │   ├── k6-grafana-cloud-prometheus.template.env
+│   │   ├── k6-grafana-cloud-secret.env
+│   │   └── k6-grafana-cloud-secret.template.env
+│   ├── dev.template.yaml
+│   ├── kubernetes.template.yaml
+│   ├── local.template.yaml
+│   ├── prod.template.yaml
+│   └── test.template.yaml
+├── .github # Github Actions
+├── Makefile
+├── README.md
+├── bin # binary
+├── cmd # main entry
+├── deployments 
+├── docker-compose-benchmark.yaml
+├── docker-compose-pg-primary-replica.yaml
+├── docker-compose-scale.yaml
+├── docker-compose.yaml
+├── docs # swagger doc
+├── go.mod
+├── go.sum
+├── infra # terraform for GKE
+├── k6
+│   └── load-test.js
+├── pkg # main code
+│   ├── cache
+│   ├── config
+│   ├── const
+│   ├── database
+│   ├── handlers
+│   ├── middleware
+│   ├── models
+│   ├── scheduler
+│   ├── schemas
+│   ├── services
+│   └── utils
+├── scripts # shell scripts for kubectl utils and PG primary replica setup
+└── test # test code
+    └── api # api test
+        ├── helper.go
+        ├── main_test.go
+        ├── service_test.go
+        └── validate_test.go
+```
 ## DevOps : CI/CD
 
 因為時間關係，主要只有完成 CI 的部分 <br>
