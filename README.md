@@ -586,7 +586,7 @@ make gke-scheduler
 ├── README.md
 ├── bin # binary
 ├── cmd # main entry
-├── deployments 
+├── deployments # k8s yaml & dockerfile
 ├── docker-compose-benchmark.yaml
 ├── docker-compose-pg-primary-replica.yaml
 ├── docker-compose-scale.yaml
