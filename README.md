@@ -22,20 +22,10 @@ The assignment can be broadly defined as:  <br>
 ## TODO
 
 > [Assignment Link](https://drive.google.com/file/d/1dnDiBDen7FrzOAJdKZMDJg479IC77_zT/view)
-
-- [ ] 請對這兩組 API 進行合理的參數驗證和錯誤處理
-- [ ] 請撰寫適當的 test
-- [ ] 提供 Public API 能超過 10,000 Requests Per Second 的設計
-- [ ] 同時存在系統的總活躍廣告數量 (也就是 StartAt < NOW < EndAt) < 1000
-- [ ] 每天 create 的廣告數量 不會超過 3000 個
-- [ ] 請在 Readme 中描述想法和設計上的選擇
-
-## Evaluation
-
-- 正確性: 必須符合基本要求、功能能正常運作
-- 效能: 選擇的設計與實作是否符合或者超過上述提到的效能需求
-- 可讀性: 程式碼可讀性、註解、Readme 說明
-- 測試: 是否有適當完整的 unit test
+- [x] 請對這兩組 API 進行合理的參數驗證和錯誤處理
+- [x] 請撰寫適當的 test
+- [x] 提供 Public API 能超過 10,000 Requests Per Second 的設計
+- [x] 同時存在系統的總活躍廣告數量 (也就是 StartAt < NOW < EndAt) < 1000
 
 ## Problem Statement
 
@@ -66,10 +56,10 @@ curl -X POST -H "Content-Type: application/json" \
 ```bash
 curl -X GET -H "Content-Type: application/json" \
 "http://<host>/api/v1/ad?offset=10&limit=3&age=24&gender=F&country=TW&platform=ios"
+# if not specified, the default query condition is wildcard !!!
 ```
 
 ```json
-// response
 {
     "items": [
         {
@@ -88,44 +78,23 @@ curl -X GET -H "Content-Type: application/json" \
 }
 ```
 
-### Questions ?
-
-當時我有 2 個不清楚的地方：
-
-**Q1 :** <br>
-> 想請問 「投放 API」查詢參數的 「Age、Gender、Country、Platform 」<br>
-> 會需要考慮參數各有多個查詢條件 嗎？ <br>
->
-> 如：條件為 `16 <= Age <= 20 && ( Country == TW || Country == JP )` <br>
-> API : `http://<host>/api/v1/ad?offset=10&limit=3&age=[16,20]&gender=F&country=[TW,JP]&platform=ios` <br>
-> 還是只需要考慮範例所示的，查詢參數都各只有一個條件： <br>
-> API : http://<host>/api/v1/ad?offset=10&limit=3&age=24&gender=F&country=TW&platform=ios
-
-**A1 :** <br>
-投放時，個人的 age, country 都是固定的，只會有單一一個
-
-<br>
-
-**Q2 :**
-> 還想請問 「投放 API」如果沒有指定所有參數 <br>
-> 如： 沒有指定 Age 和 Platform <br>
-> API : http://<host>/api/v1/ad?offset=10&limit=3&gender=F&country=TW
-
-**A2 :** <br>
-第一個理解是正確的，沒有設定的部分，就是 wildcard 唷
-
-
 ## System Architecture
 
-
+### Ideal Architecture
 ```mermaid
 flowchart TD
     Ingress[Ingress] 
 
-    subgraph APCluster[Stateless AP]
-    AP1[AP 1]
-    AP2[AP 2]
-    AP3[scale by k8s ...]
+    subgraph APCluster["`**Stateless AP**`"]
+        subgraph AP1LocalCache[Local Cache]
+        AP1[AP 1]
+        end
+        subgraph AP2LocalCache[Local Cache]
+        AP2[AP 2]
+        end
+        subgraph AP3LocalCache[Local Cache]
+        AP3[scale by k8s ...]
+        end
     end
     %% Ingress --> AP1 & AP2 & AP3
     
@@ -135,9 +104,9 @@ flowchart TD
     end
 
     subgraph RedisCluster["`Redis **sentinel**`"]
-    RedisReplica1[Replica 1]
-    RedisMaster[Primary]
-    RedisReplica2[Replica 2]
+    RedisReplica1[(Replica 1)]
+    RedisMaster[(Primary)]
+    RedisReplica2[(Replica 2)]
     end
 
     Ingress --> APCluster -- Public API
@@ -145,11 +114,15 @@ flowchart TD
     HAProxyCluster -- load balance Read request --> RedisCluster
     %% HAProxyCluster --> RedisReplica1 & RedisReplica2
 
-    PG[fa:fa-database Postgres]
+    subgraph PgCluster["`Postgres **Primary Replica**`"]
+    PG[(Postgres\nPrimary)]
+    PgReplica[(Postgres\nReplica)]
+    PG -- WAL --> PgReplica
+    end
 
-    RedisMaster & RedisReplica1 & RedisReplica2 ---> PG
-    APCluster -- Admin API
-    ( Create AD ) --> PG
+    RedisMaster & RedisReplica1 & RedisReplica2 ---> PG & PgReplica
+    APCluster == Admin API
+    ( Create AD ) ==> PG
 
 
     %% subgraph CornWorkers[Cornjob Workers]
@@ -163,8 +136,73 @@ flowchart TD
 
     RedisMaster <-- Pre-heat or aeactive AD
     ( use Lua script for atomic operation ) --> Corn <-- Query oncomming AD--> PG
+```
+
+### Finial implimentation
+```mermaid
+flowchart TD
+    Ingress[Ingress] 
 
     
+    Ingress --> APCluster
+
+    subgraph APCluster["`**Stateless AP**`"]
+        
+        subgraph AP2LocalCache[Local Cache]
+        AP2[AP 2]
+        BG2[BG goroutine]
+        AP2 -.- BG2
+        end
+
+        subgraph AP1LocalCache[Local Cache]
+        AP1[AP 1]
+        BG1["`Internal goroutine
+        refresh local Cache`"]
+        AP1 -.- BG1
+        end
+
+        
+        
+        
+        subgraph AP3LocalCache[Local Cache]
+        AP3[scale by k8s ...]
+        BG3[BG goroutine]
+        AP3 -.- BG3
+        end
+    end
+    
+
+    Redis[("Redis standalone")]
+
+
+    AP1LocalCache -. "`Public API
+    (if cached)`" .-> Redis
+
+    AP1LocalCache -. "`Public API
+    (if cached)`" .-> Redis
+
+
+    subgraph PgCluster["`Postgres **Primary Replica**`"]
+    PG[(Postgres\nPrimary)]
+    PgReplica[(Postgres\nReplica)]
+    PG -- WAL --> PgReplica
+    end
+
+    AP2LocalCache -. "`Public API
+    (if not cache)`" .-> PG & PgReplica
+
+    AP3LocalCache -. "`Public API
+    (if not cache)`" .-> PG & PgReplica
+
+    AP3LocalCache == Admin API
+    ( Create AD ) ==> PG
+
+
+    Corn[CornJob]
+
+    Redis <-. "`Pre-heat or daeactive AD
+    ( use **Lua** script for atomic operation )`" .-> Corn <-.-> PG
+
 ```
 
 ## System Design
