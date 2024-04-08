@@ -1,0 +1,31 @@
+app:
+  desc: Adversement API
+  version: v1.0.0
+  address: 0.0.0.0:8003
+  env: prod
+database:
+  kind: postgres
+  host: 127.0.0.1
+  port: 5432
+  user: your_postgres_user
+  password: your_postgres_password
+  name: advertisement
+  debug: false
+redis:
+  host: 127.0.0.1
+  port: 6379
+  user: root
+  password: your_redis_password
+  ttl: 10m #  time to live of non hot data
+scheduler:
+  firstInterval: 5ms # interval between set every element for the first time
+  interval: 500ms # 0.5s , interval between set every element except the first time
+  period: 20m # period of scheduler , trigger the scheduler every 5 minutes
+localCache:
+  maxSize: 33554432 # 32MB , max size of local cache
+  period: 3m # period for background goroutine to refresh local cache
+  interval: 200ms # interval between refresh local cache
+  ttl: 4m # time to live of local cache
+hotdata:
+  ageStart: 18
+  ageEnd: 35
