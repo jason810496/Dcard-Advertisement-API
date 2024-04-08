@@ -1,0 +1,50 @@
+version: '1.0'
+
+services:
+
+  primary:
+    container_name: primary
+    image: postgres:15.1
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env/dev/db.env
+    restart: always
+    volumes:
+      - ./stateful_volumes/dev/primary:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "your_postgres_user" , "-d", "advertisement"]
+      interval: 2s
+      timeout: 3s
+      retries: 5
+    networks:
+      my_network:
+        ipv4_address: 172.22.0.100
+
+  replica:
+    container_name: replica
+    image: postgres:15.1
+    ports:
+      - "5433:5432"
+    env_file:
+      - .env/dev/db.env
+    restart: always
+    volumes:
+      - ./stateful_volumes/dev/replica:/var/lib/postgresql/data
+      - ./stateful_volumes/dev/primary_copy:/var/lib/postgresql/primary_copy
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "your_postgres_user" , "-d", "advertisement"]
+      interval: 2s
+      timeout: 3s
+      retries: 5
+    networks:
+      my_network:
+        ipv4_address: 172.22.0.101
+
+networks:
+  my_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.22.0.0/24
+          gateway: 172.22.0.1

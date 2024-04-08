@@ -70,6 +70,22 @@ local-benchmark-scheduler:
 local-benchmark-generator:
 	docker compose -f docker-compose-scale.yaml up generator -d
 
+.PHONY: local-primary-replica-reset
+local-primary-replica-reset:
+	./scripts/pg-primary-replica-reset.sh
+
+.PHONY: local-primary-replica-setup
+local-primary-replica-setup:
+	./scripts/pg-primary-replica-setup.sh
+
+.PHONY: local-primary-replica-test
+local-primary-replica-test:
+	./scripts/pg-primary-replica-test.sh
+
+.PHONY: local-primary-replica-down
+local-primary-replica-down:
+	docker compose -f docker-compose-pg-primary-replica.yaml down
+
 .PHONY: local-clean
 local-clean:
 	docker compose down
