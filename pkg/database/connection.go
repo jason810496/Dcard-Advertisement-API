@@ -60,8 +60,8 @@ func Init() {
 	if err != nil {
 		panic("Failed to set database connection pool")
 	}
-	sqlDB.SetMaxIdleConns(10)
-	sqlDB.SetMaxOpenConns(100)
+	sqlDB.SetMaxIdleConns(20)
+	// sqlDB.SetMaxOpenConns(200)
 	sqlDB.SetConnMaxLifetime(time.Hour)
 	log.Println("Set database connection pool")
 

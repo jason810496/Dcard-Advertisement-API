@@ -25,8 +25,6 @@ type PublicService struct {
 	lc  *fastcache.Cache
 	rds *cache.RedisClient
 }
-type DBClient gorm.DB
-type RedisClient cache.RedisClient
 
 var PublicServiceInstance *PublicService
 

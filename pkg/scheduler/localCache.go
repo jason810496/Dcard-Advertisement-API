@@ -17,8 +17,13 @@ import (
 func RefreshLocalCache(lc *fastcache.Cache, intervalArg ...time.Duration) {
 	fmt.Println("Start Refresh local cache")
 	// Preheat cache
-	srv := services.GetPublicService()
+	srv := services.NewPublicService()	
 	req := schemas.PublicAdRequest{}
+	req.Offset = new(int)
+	*req.Offset = 0
+	req.Limit = new(int)
+	*req.Limit = 10000
+
 	interval := time.Millisecond
 	// use custom interval if pass args
 	if len(intervalArg) > 0 {
@@ -36,8 +41,15 @@ func RefreshLocalCache(lc *fastcache.Cache, intervalArg ...time.Duration) {
 
 		key := cache.PublicAdKey(&req)
 		var ads []models.Advertisement
-		err := srv.GetAdFromDB(&req, &ads)
-
+		err, found := srv.GetAdFromRedis(&req, &ads)
+		if err != nil {
+			utils.PrintJson(err)
+		}
+		if !found {
+			err = srv.GetAdFromDB(&req, &ads)
+		}
+		err = srv.GetAdFromDB(&req, &ads)
+		
 		if err != nil {
 			utils.PrintJson(err)
 		}

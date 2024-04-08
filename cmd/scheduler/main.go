@@ -88,7 +88,7 @@ func renewCache() {
 		} else {
 			schema.Age = a
 		}
-		
+
 		key := cache.PublicAdKey(&schema)
 		fmt.Println("key: ", key)
 
