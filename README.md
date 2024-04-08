@@ -33,13 +33,18 @@ The assignment can be broadly defined as:  <br>
       * [How to refresh Local Cache ?](#how-to-refresh-local-cache-)
          * [Implementation Details](#implementation-details-1)
       * [Not fast enough ? Cache by URI](#not-fast-enough--cache-by-uri)
-      * [Pros](#pros)
-      * [Cons](#cons)
+         * [Pros &amp; Cons](#pros--cons)
    * [Problem I faced](#problem-i-faced)
       * [Redis Sentinel: return docker container IP](#redis-sentinel-return-docker-container-ip)
       * [GKE: cross node network latency](#gke-cross-node-network-latency)
       * [How to cache all data ?](#how-to-cache-all-data-)
+   * [Setup : Local Development](#setup--local-development)
+   * [Setup : Production ( kubernetes )](#setup--production--kubernetes-)
+   * [Project Structure](#project-structure)
+   * [DevOps : CI/CD](#devops--cicd)
+   * [Test](#test)
    * [Benchmark](#benchmark)
+         * [Pros &amp; Cons](#pros--cons-1)
       * [How to stimulate the real world data ?](#how-to-stimulate-the-real-world-data-)
       * [Redis Cache + Local Cache + PG Primary Replica + Refactor Models + Cache by URI](#redis-cache--local-cache--pg-primary-replica--refactor-models--cache-by-uri)
          * [Local, warm, 5min: 13830.616806/s, avg=22.8ms, min=33µs med=888µs max=633.52ms p(90)=78.12ms p(95)=130.47ms](#local-warm-5min-13830616806s-avg228ms-min33µs-med888µs-max63352ms-p907812ms-p9513047ms)
@@ -62,15 +67,6 @@ The assignment can be broadly defined as:  <br>
          * [Local, 1min: 6695.510836/s, avg=444.3ms  min=306µs med=419.89ms max=1.03s   p(90)=693.87ms p(95)=756.54ms](#local-1min-6695510836s-avg4443ms--min306µs-med41989ms-max103s---p9069387ms-p9575654ms)
          * [Local, 5min: 7798.832707/s, avg=268.63ms min=51µs med=1.63ms max=2.39s    p(90)=957.71ms p(95)=1.16s](#local-5min-7798832707s-avg26863ms-min51µs-med163ms-max239s----p9095771ms-p95116s)
       * [More benchmark records](#more-benchmark-records)
-   * [Setup : Development](#setup--development)
-      * [Prerequisites](#prerequisites)
-      * [Setup](#setup)
-   * [Setup : Production ( kubernetes )](#setup--production--kubernetes-)
-   * [Features : Distributed Locks with Redis](#features--distributed-locks-with-redis)
-   * [Features : Local Cache in Memory](#features--local-cache-in-memory)
-   * [Features : High availability with Redis Sentinel](#features--high-availability-with-redis-sentinel)
-   * [Benchmark: k6-operator CRD](#benchmark-k6-operator-crd)
-   * [DevOps : CI/CD](#devops--cicd)
 
 ## TODO
 
@@ -515,57 +511,90 @@ QPR 與 DB 和 Redis 的 CPU,RAM 使用量沒有明顯增加 <br>
     - 有效率的查詢 Cache 過的資料 <br>
 
 
-## Setup : Development
+## Setup : Local Development
 
-### Prerequisites
-
-- `air` : Hot reload for Go
-- `swag` : auto generate API doc
-- `make` : Build tool
-
-### Setup
-
-```bash
-```
+- Prerequisites
+    - `air` : Hot reload for Go
+    - `swag` : auto generate API doc
+    - `make` : Build tool
+    - `docker compose` : For DB and Redis
+- `Redis`
+    ```
+    docker compose up redis -d
+    ```
+- `Postgres` : Primary Replica setup
+    ```bash
+    make local-primary-replica-reset
+    make local-primary-replica-setup # should enter `replpass`
+    make local-primary-replica-test
+    ```
+- api
+    ```bash
+    go mod download
+    cp .env/dev/local.template.yaml .env/dev/local.yaml
+    make build-api
+    ./bin/api -config local 
+    ```
+- 設定檔都在
+    - `.env/*.yaml`
+    - `.env/dev/*.env`
+- 如果要切換不同設定檔，可以透過 `-config` flag 來指定
+    ```bash
+    ./bin/api -config prod # use .env/prod.yaml
+    ./bin/api -config kubernetes # use .env/dev/kubernetes.yaml
+    ```
 
 ## Setup : Production ( kubernetes )
 
+> ![Note]
+> 這邊只有設定好至 **Redis + Local Cache** 的版本 <br>
+> 所以需要先 `git checkout release/v2` 才能使用 <br>
 
-## Features : Distributed Locks with Redis 
+```bash
+make kube-config
+make gke-database
+make gke-redis
+make gke-generator
+make gke-api
+make gke-scheduler
+```
 
-Hotspot Invalid ( 快取擊穿 ) <br>
-
-## Features : Local Cache in Memory
-
-https://github.com/chenyahui/gin-cache
-
-除了在 Redis 做 Cache ， 也可以在 Local Memory 做 Cache <br>
-但是會設定更短的 TTL <br>
-
-## Features : High availability with Redis Sentinel
-
-現在我們的 API 對 Redis 有很高的依賴 <br>
-如果 Redis instance 掛掉，整個 DB 也會被流量打掛 <br>
-所以要保證 Redis 的高可用性 <br>
-
-這邊可以透過 Redis Sentinel ( 哨兵模式 ) 來達成 <br>
-並且可以將 Query 操作分散到多個 Redis instance 上 <br>
-
-## Benchmark: `k6-operator` CRD
-
-`k6-operator` 是一個可以在 k8s 上以 k6 做 load testing 的 CRD <br>
-- 提供 `parallelsim` 把 rate 平均分散給 N 個 k6 instance
-    - 可以降低單一個 k6 instance CPU 飆高的問題
-    - 在 k8s cluster 內執行 distributed load testing
-- 可以設定 prometheus 的 Remote Write Endpoint 來收集資料到 Grafana Cloud
-- 使用 configmap 來設定 k6 的 script
-
-
-> ![k6-k8s-kill-by-cpu]()
-> 在某些測試情況下，單一個 k6 instance 很容易會以指數上升用量去吃 CPU
-> 造成 resource limit 被 kill
+## Project Structure
 
 ## DevOps : CI/CD
+
+因為時間關係，主要只有完成 CI 的部分 <br>
+使用 **Github Actions** 來做 CI <br>
+
+<br>
+
+在 push 或 PR 到 **build** branch 時 <br>
+會自動 build Image 並 push 到 **Docker Hub** <br> 
+
+## Test
+
+主要分為 3 個部分的測試 : <br>
+- validate test
+    - 驗證 API 的輸入是否合法
+- service test
+    - 驗證 Local Cache 和 Redis Cache 與 DB 的一致性
+- system test
+    - 驗證整個系統使用 Redis Cache 和 Local Cache 的效能
+    - 但因為時間問題，沒有完成 system test
+> 這邊只有寫 API 的 test ， 但 Scheduler 的 Test 還沒有完成 <br>
+
+<br>
+
+使用 `setup` 和 `teardown` 來做測試前的準備和測試後的清理 <br>
+如 [./test/service_test.go](./test/api/service_test.go) 中的 `TestService` <br>
+
+```go
+func TestServiceGetAdFromDB(t *testing.T) {
+	SetupFunction(t, ClearDB, GenerateAds)
+	defer TeardownFunction(t)
+
+    // test code
+```
 
 ## Benchmark
 
@@ -581,12 +610,31 @@ https://github.com/chenyahui/gin-cache
 測試方法分為 : <br>
 - 在 k8s 環境：
     - **k6-operator** : 使用 k6-operator 來在 k8s 上部署 k6 instance 來做 distributed load testing
-        - 可以設定 `parallelsim` 來平均分散 rate 給 N 個 k6 instance
-        - 可以降低 k6 instance CPU 飆高的問題
     - **k6-deployment** : 在 k8s 上部署單個 k6 instance 來做 load testing
 - 在 Local 與 GCE 環境：
     - **k6-local** : 在 local 直接下載 k6 來做 load testing
 
+### `k6-operator` CRD
+
+`k6-operator` 是一個可以在 k8s 上以 k6 做 load testing 的 CRD <br>
+>![k6-on-gke](./assets/k6-on-gke.png)
+> 圖上的 `k6-sample-1` 和 `k6-sample-2` 是由 `k6-operator` 產生的 k6 instance <br>
+> ( `parallelsim` 設為 2 ) <br>
+
+#### Pros & Cons
+- **Pros**
+    - 提供 `parallelsim` 把 rate 平均分散給 N 個 k6 instance
+        - 可以降低單一個 k6 instance CPU 飆高的問題
+        - 在 k8s cluster 內執行 distributed load testing
+    - 可以設定 prometheus 的 Remote Write Endpoint 來收集資料到 Grafana Cloud
+    - 使用 configmap 來設定 k6 的 script
+- **Cons**
+    - k6-operator 在 apply resource 需要等 **很久** 才會開始執行
+        - 在 `parallelsim` 設比較多時，需要等更久！
+
+> ![k6-k8s-kill-by-cpu](./assets/k6-k8s-kill-by-cpu.png)
+> 在某些測試情況下，單一個 k6 instance 很容易會以指數上升用量去吃 CPU
+> 造成 resource limit 被 kill
 
 ### How to stimulate the real world data ?
 
