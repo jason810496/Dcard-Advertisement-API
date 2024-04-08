@@ -14,10 +14,12 @@ The assignment can be broadly defined as:  <br>
       * [Ideal Architecture](#ideal-architecture)
       * [Finial implimentation](#finial-implimentation)
    * [System Design](#system-design)
+      * [Core Concept](#core-concept)
       * [Data Hotspot](#data-hotspot)
       * [Estimated Data Size](#estimated-data-size)
-      * [Not Hotspot Data](#not-hotspot-data)
-      * [How to preheat &amp; deactive ?](#how-to-preheat--deactive-)
+      * [Redis Cache](#redis-cache)
+         * [Implementation Details](#implementation-details)
+      * [How to evict and refresh Local Cache ?](#how-to-evict-and-refresh-local-cache-)
    * [Benchmark](#benchmark)
       * [How to stimulate the real world data ?](#how-to-stimulate-the-real-world-data-)
       * [Redis Cache + Local Cache + PG Primary Replica + Refactor Models + Cache by URI](#redis-cache--local-cache--pg-primary-replica--refactor-models--cache-by-uri)
@@ -37,7 +39,7 @@ The assignment can be broadly defined as:  <br>
          * [GKE, 5min, 5 replica API: 456.225066/s,avg=821.86ms min=651.89µs med=607.26ms max=4.99s p(90)=1.78s    p(95)=2.4s](#gke-5min-5-replica-api-456225066savg82186ms-min65189µs-med60726ms-max499s-p90178s----p9524s)
          * [GCE, 1min: 3233.865472/s, avg=1.2s     min=248.72µs med=976.16ms max=13.11s   p(90)=2.7s     p(95)=3.25s](#gce-1min-3233865472s-avg12s-----min24872µs-med97616ms-max1311s---p9027s-----p95325s)
          * [GCE, 5min: 3043.105727/s, avg=1.89s   min=539.18µs med=1.8s    max=15.41s   p(90)=2.67s    p(95)=2.92s](#gce-5min-3043105727s-avg189s---min53918µs-med18s----max1541s---p90267s----p95292s)
-      * [Redis Cache](#redis-cache)
+      * [Redis Cache](#redis-cache-1)
          * [Local, 1min: 6695.510836/s, avg=444.3ms  min=306µs med=419.89ms max=1.03s   p(90)=693.87ms p(95)=756.54ms](#local-1min-6695510836s-avg4443ms--min306µs-med41989ms-max103s---p9069387ms-p9575654ms)
          * [Local, 5min: 7798.832707/s, avg=268.63ms min=51µs med=1.63ms max=2.39s    p(90)=957.71ms p(95)=1.16s](#local-5min-7798832707s-avg26863ms-min51µs-med163ms-max239s----p9095771ms-p95116s)
       * [More benchmark records](#more-benchmark-records)
@@ -239,6 +241,8 @@ flowchart TD
 
 ## System Design
 
+### Core Concept
+
 要達到 : <br>
 - **1000 requests per second** 
 - **總活躍廣告數量 < 1000**
@@ -249,8 +253,10 @@ flowchart TD
 
 核心的想法是: <br>
 透過 **Corn Job** 來定期的
-把 **最常出現的查詢條件** (data hotspot) 都 **preheat** 到 Redis 中 <br>
-同樣也透過 Corn Job 來將 **過期的資料** 刪除 <br>
+把 **最常出現的查詢條件** (data hotspot) 都排列組合出來後 <br>
+並且把這些組合的 SQL result 都更新到 **Redis** 和 **Local Cache** 中 <br>
+
+對於 Local Cache 也有另外的 **Background Goroutine** 來定期的更新 Cache <br>
 
 ### Data Hotspot
 
@@ -261,8 +267,8 @@ flowchart TD
 - [similarweb.com 對 Dcard 網站流量分析](https://www.similarweb.com/zh-tw/website/dcard.tw/#demographics)
     > 25 - 34 歲的訪客占最多數。 （電腦上）
 
-可以假設 `[ 18 , 35+5 ]` 的年齡的熱點區間 <br>
-( 因為 Dcard 要滿 18 才能註冊，所以只對多數用戶年齡的上界做 +5 ) <br>
+可以假設 `[ 18 , 35 ]` 的年齡的熱點區間 <br>
+( 因為 Dcard 要滿 18 才能註冊，所以只對多數用戶年齡的上界做 ) <br>
 
 **Country** <br>
 根據： [Dcard 官網 - 徵才介紹](https://about.dcard.tw/career)
@@ -275,45 +281,67 @@ flowchart TD
 ### Estimated Data Size
 
 根據 [Data Hotspot](#data-hotspot) 的假設 <br>
-- **Age** : 35 - 18 + 5 = 22
-- **Country** : 5 
-- **Platform** : 3 
-- **Gender** : 2 
+- **Age** : 35 - 18 + 1 = 18
+- **Country** : 5 + 1 = 6
+- **Platform** : 3 + 1 = 4
+- **Gender** : 2 + 1 = 3
+> 需要 +1 是因為有 **wildcard** 的情況 <br>
 
-總共有 `22 * 5 * 3 * 2 = 660` 種熱點搜尋組合 <br>
-並對每個組合都以 `ad:Age:Country:Platform:Gender` 做為 Key 的 **ZSET** <br>
-來存所有符合這個組合的 SQL result <br>
-ZSET 的結構如下 : <br>
-- Field : stringfy 的 `title, endAt` ( 視情況看需不需要壓縮 )
-- Score :  依照 SQL result 的順序 （ 1,2,3 ... ）<br> 在 pagnation 查詢時，可以直接用 `ZRANGE` 以 `O(logN)+M` 的時間複雜度取出 
-- **TTL** : **設無限** ! <br> 因為這些都是熱點資料，為了防止**快取雪崩** 不設定 TTL<br> 並使用 Lua Script 來做 **Atomic 更新** <br>
+總共有 `18 * 6 * 4 * 3 = 1296` 種組合 <br>
+在 Redis 中約為 15 MB <br>
+![redis size](./assets/redis-size.png)
 
-### Not Hotspot Data
+### Redis Cache
 
-對於不是熱點的查詢條件，設置較短的 **TTL** <br>
-如：15 分鐘 <br>
-
-### How to preheat & deactive ?
-
-題目的要求有特別提到 : <br>
-- **總活躍廣告數量 < 1000**
-- **每天 create 的廣告數量 不會超過 3000 個**
-
-代表當下 SQL Create 的廣告 **不一定** 會立即 **活躍** <br>
+當下 SQL Create 的廣告 **不一定** 會立即 **活躍** <br>
 > 最差的情況是當下 Create 的廣告都是未來的時間 <br>
 > 如果在 SQL Create 的當下就直接 Preheat 到 Redis 中 <br>
 > 反而會造成 Memory 的浪費 <br>
 
-所以可以透過 **Corn Job** 來定期的更新 cache <br>
-如：<br>
-每 5 分鐘枚舉過所有 Hotspot 的排列組合 <br>
-`select` 當前活躍的廣告列表，並加入到 `Redis` 的 `ZSET` 中 <br>
+<br>
 
----
+可以透過 **Corn Job** 來定期的更新 cache <br>
+每 M 分鐘枚舉過所有 Hotspot 的排列組合
+>  M 為可依實際運行狀況 fine tune 的時間 <br>
+> 設定為不影響實際 DB, Redis 的 Interval <br>
+> 並且可接受的短暫資料不一致時間 <br>
 
-> 當時想了一些其他的 [Solution]() <br>
-> 一開始都卡在 `Age` 這個欄位要如何有效搜尋或是儲存 <br>
-> 最後選擇目前的 preheat data hotpots 做實作 <br>
+<br>
+
+從 DB SELECT 當前活躍的廣告列表，並加入到 `Redis` 的 `ZSET` 中 <br>
+雖然會有短暫的資料不一致，但可以避免 **快取雪崩** 的問題和 **突發 preheat** 的問題 <br>
+> 如： 同時有多個廣告在同一個時間點活躍 <br>
+> 會造成 **大量的 Redis 更新** Block 住 <br>
+> 使用 **Corn Job** 可以 **平均分散**這些更新 <br>
+
+
+#### Implementation Details
+
+`ZSET` 的結構如下 : <br>
+- `Key` : `ad:age:country:platform:gender` <br>
+    - 如果沒有特定條件，就用 `*` 代替 <br>
+    - 例如：
+        - `ad:18:TW:android:M` : 代表 18, TW, android, M 的 Advertisement List
+        - `ad:18:TW:android:*` : 代表 18, TW, android, 不指定性別 的 Advertisement List
+        - `ad:18:TW:*:*`   : 代表 18, TW, 不指定平台, 不指定性別 的 Advertisement List
+        - `ad:18:*:*:*`    : 代表 18, 不指定國家, 不指定平台, 不指定性別 的 Advertisement List
+        - `ad:*:*:*:*` : 代表所有的 Advertisement List
+- `Field` : stringfy 的 title, endAt ( 視情況看需不需要壓縮 )
+- `Score` : 依照 SQL result 的順序 （ 1,2,3 ... ）
+    - 在 pagnation 查詢時，可以直接用 `ZRANGEBYSCORE` 以 `O(logN)+M` 的時間複雜度取出
+
+<br>
+
+- schduler 以 **Lua Script** 來做 **Atomic 更新** <br>
+- **Hotdata** 的 **TTL** 應該要設為
+    - 比 **Schedule** 下次更新的時間還要長 <br>
+    - 這樣可以確保 **Hotdata** 不會在 **Schedule** 更新前被刪除 <br>
+    - 並且可以避免 **快取雪崩** 的問題 <br>
+- **Colddata** 的 **TTL** 應該要設為相對較短的時間 <br>
+    - 不會佔用太多的 Memory 和 Key 導致 Redis 的效能下降 <br>
+
+
+### How to evict and refresh Local Cache ?
 
 ## Benchmark
 
