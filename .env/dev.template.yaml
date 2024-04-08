@@ -4,13 +4,21 @@ app:
   address: 0.0.0.0:8080
   env: test
 database:
-  kind: postgres
+  kind: primary
   host: db
   port: 5432
   user: your_postgres_user
   password: your_postgres_password
   name: advertisement
-  debug: true
+  debug: false
+  mode: primary-replica
+  replica:
+    host: replica
+    port: 5433
+    user: your_postgres_user
+    password: your_postgres_password
+    name: advertisement
+    debug: true
 redis:
   host: redis
   port: 6379

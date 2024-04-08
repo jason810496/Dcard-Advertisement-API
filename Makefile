@@ -2,19 +2,14 @@ EXECUTABLE := api
 SOURCES ?= $(shell find . -name "*.go" -type f)
 GO ?= go
 
-build: $(EXECUTABLE)
-
-$(EXECUTABLE): $(SOURCES)
-	$(GO) build -v -tags '$(TAGS)' -ldflags '$(EXTLDFLAGS)-s \
-	-w $(LDFLAGS)' -o bin/$@ ./cmd/$(EXECUTABLE) 
+build-api:
+	$(GO) build -v -o bin/api ./cmd/api
 
 build-generator:
-	$(GO) build -v -tags '$(TAGS)' -ldflags '$(EXTLDFLAGS)-s \
-	-w $(LDFLAGS)' -o bin/generator ./cmd/generator
+	$(GO) build -v -o bin/generator ./cmd/generator
 
 build-scheduler:
-	$(GO) build -v -tags '$(TAGS)' -ldflags '$(EXTLDFLAGS)-s \
-	-w $(LDFLAGS)' -o bin/scheduler ./cmd/scheduler
+	$(GO) build -v -o bin/scheduler ./cmd/scheduler
 
 init:
 # tools
