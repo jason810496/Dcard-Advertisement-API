@@ -44,6 +44,7 @@ The assignment can be broadly defined as:  <br>
    * [DevOps : CI/CD](#devops--cicd)
    * [Test](#test)
    * [Benchmark](#benchmark)
+      * [k6-operator CRD](#k6-operator-crd)
          * [Pros &amp; Cons](#pros--cons-1)
       * [How to stimulate the real world data ?](#how-to-stimulate-the-real-world-data-)
       * [Redis Cache + Local Cache + PG Primary Replica + Refactor Models + Cache by URI](#redis-cache--local-cache--pg-primary-replica--refactor-models--cache-by-uri)
@@ -669,7 +670,7 @@ func TestServiceGetAdFromDB(t *testing.T) {
 - 在 Local 與 GCE 環境：
     - **k6-local** : 在 local 直接下載 k6 來做 load testing
 
-### `k6-operator` CRD
+### k6-operator CRD
 
 `k6-operator` 是一個可以在 k8s 上以 k6 做 load testing 的 CRD <br>
 >![k6-on-gke](./assets/k6-on-gke.png)
