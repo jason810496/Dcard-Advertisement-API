@@ -547,7 +547,7 @@ QPR 與 DB 和 Redis 的 CPU,RAM 使用量沒有明顯增加 <br>
 
 ## Setup : Production ( kubernetes )
 
-> ![Note]
+> [!Note]
 > 這邊只有設定好至 **Redis + Local Cache** 的版本 <br>
 > 所以需要先 `git checkout release/v2` 才能使用 <br>
 
