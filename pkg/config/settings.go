@@ -27,6 +27,7 @@ func Init() {
 	if err := viper.Unmarshal(Settings); err != nil {
 		panic(fmt.Errorf("fatal error parse config file: %s \n", err))
 	}
+	Settings.Redis.Sentinel.Addrs = viper.GetStringSlice("redis.sentinel.address")
 
 	utils.PrintJson(Settings)
 }

@@ -16,16 +16,17 @@ type database struct {
 	User     string `yaml:"user"`
 	Password string `yaml:"password"`
 	Name     string `yaml:"name"`
-	Debug	bool   `yaml:"debug"`
+	Debug    bool   `yaml:"debug"`
 }
 
 type redis struct {
+	Mode     string        `yaml:"mode"`
 	Host     string        `yaml:"host"`
 	Port     string        `yaml:"port"`
 	Password string        `yaml:"password"`
 	Username string        `yaml:"user"`
 	TTL      time.Duration `yaml:"ttl"`
-	Sentinel sentinel	  `yaml:"sentinel"`
+	Sentinel sentinel      `yaml:"sentinel"`
 }
 
 type sentinel struct {

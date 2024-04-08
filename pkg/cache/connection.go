@@ -22,6 +22,7 @@ type RedisClusterClient struct {
 var RedisClientInstance *RedisClient
 var RedisFailoverClusterClientReadInstance *RedisClusterClient
 var RedisFailoverClusterClientWriteInstance *RedisClient
+
 // https://github.com/redis/go-redis/issues/1169
 
 func Init() {
@@ -53,9 +54,9 @@ func CloseConnection() {
 
 func InitClusterReadClient() {
 	rdb := redis.NewFailoverClusterClient(&redis.FailoverOptions{
-		MasterName:    config.Settings.Redis.Sentinel.MasterName,
-		SentinelAddrs: config.Settings.Redis.Sentinel.Addrs,
-		Password:      config.Settings.Redis.Password,
+		MasterName:       config.Settings.Redis.Sentinel.MasterName,
+		SentinelAddrs:    config.Settings.Redis.Sentinel.Addrs,
+		Password:         config.Settings.Redis.Password,
 		SentinelPassword: config.Settings.Redis.Password,
 		// To route commands by latency or randomly, enable one of the following.
 		//RouteByLatency: true,
@@ -68,12 +69,11 @@ func InitClusterReadClient() {
 	}
 }
 
-
 func InitClusterWriteClient() {
 	rdb := redis.NewFailoverClient(&redis.FailoverOptions{
-		MasterName:    config.Settings.Redis.Sentinel.MasterName,
-		SentinelAddrs: config.Settings.Redis.Sentinel.Addrs,
-		Password:      config.Settings.Redis.Password,
+		MasterName:       config.Settings.Redis.Sentinel.MasterName,
+		SentinelAddrs:    config.Settings.Redis.Sentinel.Addrs,
+		Password:         config.Settings.Redis.Password,
 		SentinelPassword: config.Settings.Redis.Password,
 	})
 
@@ -87,6 +87,7 @@ func (r *RedisClusterClient) CheckConnection() {
 	val, err := r.Client.Ping(r.Context).Result()
 	if err != nil {
 		fmt.Println("Redis connection failed")
+		fmt.Println(err)
 	}
 	fmt.Println("Redis connection success")
 	fmt.Print(val)
