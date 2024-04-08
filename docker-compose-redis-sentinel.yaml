@@ -1,0 +1,57 @@
+# 搭建几个从库,就需要在services中配置几个信息，开放相应端口
+version: '2'
+networks:
+  app-tier:
+    driver: bridge
+services:
+  redis:
+    image: 'bitnami/redis:latest'
+    env_file:
+      - .env/dev/redis-sentinel-master.env
+    networks:
+      - app-tier
+    ports:
+      - '6380:6379'
+  redis-slave1:
+    image: 'bitnami/redis:latest'
+    env_file:
+      - .env/dev/redis-sentinel-slave.env
+    ports:
+      - '6381:6379'
+    depends_on:
+      - redis
+    networks:
+      - app-tier
+  redis-slave2:
+    image: 'bitnami/redis:latest'
+    env_file:
+      - .env/dev/redis-sentinel-slave.env
+    ports:
+      - '6382:6379'
+    depends_on:
+      - redis
+    networks:
+      - app-tier
+  redis-slave3:
+    image: 'bitnami/redis:latest'
+    env_file:
+      - .env/dev/redis-sentinel-slave.env
+    ports:
+      - '6383:6379'
+    depends_on:
+      - redis
+    networks:
+      - app-tier  
+  redis-sentinel:
+    image: 'bitnami/redis-sentinel:latest'
+    env_file:
+      - .env/dev/redis-sentinel-sentinel.env
+    depends_on:
+      - redis
+      - redis-slave1
+      - redis-slave2
+      - redis-slave3
+    ports:
+      - '26379-26382:26379'
+    networks:
+      - app-tier

@@ -1,4 +1,4 @@
-version: '1.0'
+version: '2'
 
 services:
   db:
@@ -16,20 +16,20 @@ services:
       timeout: 5s
       retries: 3
 
-  redis:
-    image: bitnami/redis:latest
-    ports:
-      - 6379:6379
-    restart: always
-    volumes:
-      - ./stateful_volumes/dev/redis:/bitnami/redis/data
-    env_file:
-      - .env/dev/redis.env
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 2s
-      timeout: 5s
-      retries: 3
+  # redis:
+  #   image: bitnami/redis:latest
+  #   ports:
+  #     - 6379:6379
+  #   restart: always
+  #   volumes:
+  #     - ./stateful_volumes/dev/redis:/bitnami/redis/data
+  #   env_file:
+  #     - .env/dev/redis.env
+  #   healthcheck:
+  #     test: ["CMD", "redis-cli", "ping"]
+  #     interval: 2s
+  #     timeout: 5s
+  #     retries: 3
 
   generator:
     build: 
@@ -77,19 +77,6 @@ services:
       #   condition: service_started
     command: ["./api","-config","test"]
 
-  k6:
-    image: grafana/k6
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      # scheduler:
-      #   condition: service_started
-      # api:
-      #   condition: service_started
-    env_file:
-      - .env/dev/k6.env
 
 networks:
   default: 
